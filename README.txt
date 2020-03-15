@@ -1,4 +1,6 @@
 
+Intruction of Spark execution:
+
 1- connect to cluster: ssh user24@192.168.20.157
 
 2- to upload files: scp /mnt/c/Users/simoc/Documents/GitHub/LSCproject/Spark.py user24@192.168.20.157:Project
