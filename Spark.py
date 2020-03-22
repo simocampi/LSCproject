@@ -1,8 +1,13 @@
-import sys
-from operator import add
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.functions import col
+from pyspark.sql.window import Window
+from pyspark.sql import Row, functions as F
+import sys
 
 spark = SparkSession\
         .builder\
-        .appName("PythonWordCount")\
+        .appName("LSC PROJECT")\
         .getOrCreate()
+
+patient_diagnosis = "C:/Users/simoc/Desktop/Database/"

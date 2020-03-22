@@ -24,3 +24,8 @@ Document your project with a Powerpoint presentation, pointing out:
 -details about the implementation of the proposed solution
 -performance evaluation for local and cluster-based executions
 -a rough estimate of the effort (in terms, e.g., of number of hours) devoted to the project
+
+
+local Spark execution:
+
+.\spark-2.4.5-bin-hadoop2.7\bin\spark-submit C:\Users\simoc\Documents\GitHub\LSCproject\Spark.py
