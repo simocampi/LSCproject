@@ -1,12 +1,21 @@
 from pyspark.sql import SparkSession
+from pyspark import SparkContext
 from pyspark.sql.functions import *
 from pyspark.sql.functions import col
 from pyspark.sql.window import Window
 from pyspark.sql import Row, functions as F
+#import org.apache.spark.SparkContext
 import sys
+import os
+from importlib import reload
 
-spark = SparkSession\
-        .builder\
-        .appName("LSC PROJECT")\
-        .getOrCreate()
+reload(sys)
+
+sc = SparkContext()
+
 #dataset
+demographic_info = sc.textFile("file:///.idea/Database/demographic_info.txt")
+di= demographic_info.collect()
+
+for l in di:
+        print(l)    #dshdh   
