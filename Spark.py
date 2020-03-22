@@ -9,5 +9,4 @@ spark = SparkSession\
         .builder\
         .appName("LSC PROJECT")\
         .getOrCreate()
-
-patient_diagnosis = "C:/Users/simoc/Desktop/Database/"
+#dataset
