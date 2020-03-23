@@ -11,11 +11,21 @@ from importlib import reload
 
 reload(sys)
 
+# path management
+file_path= __file__
+file_path = file_path.replace('Spark.py','')
+
+DEMOGRAPHIC_INFO_PATH = file_path+'Database/demographic_info.txt'
+PATIENT_DIAGNOSIS_PATH = file_path+'Database/patient_diagnosis.csv'
+FILENAME_DIFFERENCES_PATH = file_path+'Database/filename_differences.txt'
+FILENAME_FORMAT_PATH = file_path+'Database/filename_format.txt'
+
+
 sc = SparkContext()
 
-#dataset
-demographic_info = sc.textFile("file:///C:/Users/SimoneCampisi/Documents/GitHub/LSCproject/Database/audio_and_txt_files")
-di= demographic_info.collect()
+#create rdd of tables
+demographic_info_rdd = sc.textFile(DEMOGRAPHIC_INFO_PATH)
+patient_diagnosis_rdd = sc.textFile(PATIENT_DIAGNOSIS_PATH)
+filename_diagnosis_rdd = sc.textFile(FILENAME_DIFFERENCES_PATH)
+filename_format_rdd = sc.textFile(FILENAME_FORMAT_PATH)
 
-for l in di:
-        print(l)    #dshdh
