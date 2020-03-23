@@ -14,8 +14,8 @@ reload(sys)
 sc = SparkContext()
 
 #dataset
-demographic_info = sc.textFile("file:///.idea/Database/demographic_info.txt")
+demographic_info = sc.textFile("file:///C:/Users/SimoneCampisi/Documents/GitHub/LSCproject/Database/audio_and_txt_files")
 di= demographic_info.collect()
 
 for l in di:
-        print(l)    #dshdh   
+        print(l)    #dshdh
