@@ -21,11 +21,24 @@ FILENAME_DIFFERENCES_PATH = file_path+'Database/filename_differences.txt'
 FILENAME_FORMAT_PATH = file_path+'Database/filename_format.txt'
 
 
-sc = SparkContext()
+sc = SparkContext(
+        master = 'local',
+        appName = None, 
+        sparkHome = None, 
+        pyFiles = None, 
+        environment = None, 
+        batchSize = 0, 
+        serializer = PickleSerializer(), 
+        conf = None, 
+        gateway = None, 
+        jsc = None, 
+        profiler_cls = <class 'pyspark.profiler.BasicProfiler'>
+)
 
-#create rdd of tables
+#create rdd of tables-
 demographic_info_rdd = sc.textFile(DEMOGRAPHIC_INFO_PATH)
 patient_diagnosis_rdd = sc.textFile(PATIENT_DIAGNOSIS_PATH)
 filename_diagnosis_rdd = sc.textFile(FILENAME_DIFFERENCES_PATH)
 filename_format_rdd = sc.textFile(FILENAME_FORMAT_PATH)
+
 
