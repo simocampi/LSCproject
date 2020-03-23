@@ -18,4 +18,4 @@ demographic_info = sc.textFile("file:///.idea/Database/demographic_info.txt")
 di= demographic_info.collect()
 
 for l in di:
-        print(l)    #dshdh   
+        print(l) 
