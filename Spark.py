@@ -20,16 +20,6 @@ PATIENT_DIAGNOSIS_PATH = file_path+'Database/patient_diagnosis.csv'
 FILENAME_DIFFERENCES_PATH = file_path+'Database/filename_differences.txt'
 FILENAME_FORMAT_PATH = file_path+'Database/filename_format.txt'
 
-<<<<<<< HEAD
-print('\n\n', DEMOGRAPHIC_INFO_PATH,'\n', PATIENT_DIAGNOSIS_PATH,'\n',FILENAME_DIFFERENCES_PATH,'\n',FILENAME_FORMAT_PATH,'\n')
-
-sc = SparkContext()
-
-#dataset
-demographic_info = sc.textFile("file:///C:/Users/simoc/Documents\GitHub/LSCproject/Database/filename_differences.txt")
-
-=======
->>>>>>> c54604498b9d341bf9a56dd49d8dd11a372de7fa
 
 sc = SparkContext(
         master = 'local',
