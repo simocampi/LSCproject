@@ -21,6 +21,7 @@ PATIENT_DIAGNOSIS_PATH = file_path+'Database/patient_diagnosis.csv'
 FILENAME_DIFFERENCES_PATH = file_path+'Database/filename_differences.txt'
 FILENAME_FORMAT_PATH = file_path+'Database/filename_format.txt'
 
+print('\n\n', DEMOGRAPHIC_INFO_PATH,'\n', PATIENT_DIAGNOSIS_PATH,'\n',FILENAME_DIFFERENCES_PATH,'\n',FILENAME_FORMAT_PATH,'\n')
 
 sc = SparkContext()
 
