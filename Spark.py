@@ -8,6 +8,7 @@ from pyspark.sql import Row, functions as F
 import sys
 import os
 from importlib import reload
+from Utils.Path import Path
 
 reload(sys)
 
@@ -15,7 +16,7 @@ reload(sys)
 file_path= __file__
 file_path = file_path.replace('Spark.py','')
 
-DEMOGRAPHIC_INFO_PATH = file_path+'Database/demographic_info.txt'
+
 PATIENT_DIAGNOSIS_PATH = file_path+'Database/patient_diagnosis.csv'
 FILENAME_DIFFERENCES_PATH = file_path+'Database/filename_differences.txt'
 FILENAME_FORMAT_PATH = file_path+'Database/filename_format.txt'
@@ -39,4 +40,6 @@ patient_diagnosis_rdd = sc.textFile(PATIENT_DIAGNOSIS_PATH)
 filename_diagnosis_rdd = sc.textFile(FILENAME_DIFFERENCES_PATH)
 filename_format_rdd = sc.textFile(FILENAME_FORMAT_PATH)
 
-r = patient_diagnosis_rdd.collect()
+
+c = Path.get_database_path()
+print(c)
