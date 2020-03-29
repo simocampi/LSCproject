@@ -6,6 +6,7 @@ from pyspark.sql import Row, functions as F
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from DataManipulation.Utils.Path import Path
+from pyspark.sql import functions as F
 import sys,os
 from importlib import reload
 
@@ -21,5 +22,14 @@ patient_diagnosis = PatientDiagnosis(spark_session)
 rdd_demographic_info = demographic_info.get_rdd()
 rdd_patient_diagnosis = patient_diagnosis.get_rdd()
 
-for n in rdd_patient_diagnosis.collect():
-        print(n)
+# map function
+#def bmi(x):
+#       if x['Age']<18:
+#              x['Adult_BMI']=x['Child_weight'] / (x['Child_height']/100)**2
+#       return x
+#
+#rdd_demographic_info=rdd_demographic_info.map(bmi)
+
+rdd_demographic_info=rdd_demographic_info.toDF()
+rdd_demographic_info= rdd_demographic_info.withColumn("Adult_BMI", col("Child_weight")/(col("Child_height")/100)**2).where("Age < 18")
+rdd_demographic_info.show()
