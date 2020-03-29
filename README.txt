@@ -29,3 +29,5 @@ Document your project with a Powerpoint presentation, pointing out:
 local Spark execution:
 
 .\spark-2.4.5-bin-hadoop2.7\bin\spark-submit C:\Users\simoc\Documents\GitHub\LSCproject\Spark.py
+
+C:\Users\carot\Desktop\Ale\LSC_spark\spark-2.4.5-bin-hadoop2.7\bin\spark-submit .\Main.py
