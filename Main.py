@@ -25,3 +25,4 @@ spark_context= SparkContext(
 demographic_info = DemographicInfo(spark_context)
 
 rdd_demographic_info = demographic_info.get_rdd()
+#...
