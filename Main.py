@@ -1,28 +1,25 @@
-from pyspark import SparkContext
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.functions import col
 from pyspark.sql.window import Window
 from pyspark.sql import Row, functions as F
 from DataManipulation.DemographicInfo import DemographicInfo
-import sys
-import os
-from importlib import reload
+from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from DataManipulation.Utils.Path import Path
-
-spark_context= SparkContext(
-        master = 'local',
-        appName = 'LSC_PROJECT', 
-        sparkHome = None, 
-        pyFiles = None, 
-        environment = None, 
-        batchSize = 0, 
-        conf = None, 
-        gateway = None, 
-        jsc = None
-)
+import sys,os
+from importlib import reload
 
 
-demographic_info = DemographicInfo(spark_context)
+spark_session = SparkSession.builder \
+                .master('local') \
+                .appName('LSC_PROJECT') \
+                .getOrCreate()
+
+demographic_info = DemographicInfo(spark_session)
+patient_diagnosis = PatientDiagnosis(spark_session)
 
 rdd_demographic_info = demographic_info.get_rdd()
-#...
+rdd_patient_diagnosis = patient_diagnosis.get_rdd()
+
+for n in rdd_patient_diagnosis.collect():
+        print(n)
