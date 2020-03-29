@@ -16,3 +16,4 @@ class PatientDiagnosis(object):
     def get_rdd(self):
         return self.rdd
 
+#..
