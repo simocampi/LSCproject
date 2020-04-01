@@ -1,5 +1,7 @@
 DATAFRAMES
 
+---------------BASIS----------------------------------------
+
 - possibility to define schema: 
    
     schema =[StructField('column',InstancesOfType,boolean,....,..]
@@ -17,5 +19,30 @@ df.withColumn('newCol', df['coltoReplaceOrToAdd']) -> add a column or replace an
 df.withColumnRenamed('colName','NewColName') -> renameColumn
 
 
-BASIC OPERATION
+------------------BASIC OPERATION---------------------------------------------
 
+df.filter( (df['Col'] < 200 ) | (df['col2'] > 200) ).show()
+
+| -> or,  &-> and,  ~ -> not, == -> equality
+
+- collect() -> return row object
+
+    res = df.collect() --> row=res[0] -> first row
+    row.asDic() -> convert in dictionary
+
+- df.groupBy("colName").mean() -> (or max(), min(), count())
+
+- df.agg({'ColName':'Operation(ex:sum, max, min, mean)'})  -> take dict
+    ex: 
+        group_data = df.groupBy("Compan"y)
+        group_data.agg({'Sales':'max'}).show()
+
+-  from pyspark.sql.functions import countDistinct,avg,stddev
+
+   df.select(countDistinct('ColName').alias('newNameOfCol')).show()     (or avg()..)
+     
+- from pyspark.sql.functions import format_number  
+  
+   std = df.select(stddev("colName").alias('NewName'))
+   std.select(format_number('NewName'),2) -> 2 number arounded
+     
