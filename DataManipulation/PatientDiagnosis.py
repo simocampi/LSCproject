@@ -11,7 +11,8 @@ class PatientDiagnosis(object):
         self.rdd = spark_session.read.format('csv').option("sep", ",") \
                 .option("inferSchema", "true") \
                 .option("header", "false") \
-                .load(PATIENT_DIAGNOSIS_PATH)
+                .load(PATIENT_DIAGNOSIS_PATH).rdd
+
 
     def get_rdd(self):
         return self.rdd

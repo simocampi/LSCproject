@@ -11,7 +11,7 @@ class DemographicInfo(object):
         self.rdd = spark_session.read.format('csv').option("sep", " ") \
                 .option("inferSchema", "true") \
                 .option("header", "true") \
-                .load(DEMOGRAPHIC_INFO_PATH)
+                .load(DEMOGRAPHIC_INFO_PATH).rdd
 
     def get_rdd(self):
         return self.rdd
