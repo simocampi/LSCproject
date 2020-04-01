@@ -28,9 +28,9 @@ rdd_patient_diagnosis = patient_diagnosis.get_rdd()
 #              x['Adult_BMI']=x['Child_weight'] / (x['Child_height']/100)**2
 #       return x
 #
-#rdd_demographic_info=rdd_demographic_info.map(bmi)xxx
-
+#rdd_demographic_info=rdd_demographic_info.map(bmi)
 rdd_demographic_info=rdd_demographic_info.toDF()
-rdd_demographic_info= rdd_demographic_info.withColumn("Adult_BMI", col("Child_weight")/(col("Child_height")/100)**2).where("Age < 18")
-rdd_demographic_info.show()
-#,,
+rdd_demographic_info_adult = rdd_demographic_info.select('*').where('Age >= 18')
+rdd_demographic_info_child= rdd_demographic_info.withColumn("Adult_BMI", col("Child_weight")/(col("Child_height")/100)**2).where("Age < 18").union(rdd_demographic_info_adult)
+
+rdd_demographic_info_child.show(100)
