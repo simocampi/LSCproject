@@ -1,0 +1,21 @@
+DATAFRAMES
+
+- possibility to define schema: 
+   
+    schema =[StructField('column',InstancesOfType,boolean,....,..]
+    struc_schema = StructType(fields = schema)
+    data_frame =  spark.read.csv('file.csv', schema= struc_schema)
+    data_frame.printSchema()
+
+df['colname'] --> take a column
+df.select('col_name').show()
+df.head(2) -> first 2 rows -> df.head(2)[0] -> first roww object
+df.select(['col1',col2]).show() -> select and show multiple columns
+
+df.withColumn('newCol', df['coltoReplaceOrToAdd']) -> add a column or replace an existing column
+
+df.withColumnRenamed('colName','NewColName') -> renameColumn
+
+
+BASIC OPERATION
+
