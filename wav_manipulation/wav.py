@@ -47,7 +47,7 @@ class WAV(object):
             df = df.union(newRow)
         
         df.printSchema()
-        df.show()
+        df.show(100)
       
-    
+    ##sgshgsh
 
