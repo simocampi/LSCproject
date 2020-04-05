@@ -25,4 +25,4 @@ class WAV(object):
         wav_DF = wav_DF.withColumn("Recording_Equipement", split_col.getItem(4))
 
         wav_DF.printSchema()
-        wav_DF.show()
+        wav_DF.show(50)
