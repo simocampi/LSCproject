@@ -12,7 +12,7 @@ class WAV(object):
     def __init__(self,spark_session):
         self.spark_session = spark_session
 
-    def wav_files(self):
+    def wav_filename(self):
         wav_files = [[f[:-4]] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
 
         wav_DF = self.spark_session.createDataFrame(wav_files, StructType([StructField("FileName", StringType(), False)]))
@@ -25,4 +25,4 @@ class WAV(object):
         wav_DF = wav_DF.withColumn("Recording_Equipement", split_col.getItem(4))
 
         wav_DF.printSchema()
-        wav_DF.show(50)
+        wav_DF.show()
