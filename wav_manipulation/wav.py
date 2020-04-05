@@ -1,15 +1,18 @@
+from os import *
 from os.path import *
 from Utils.Path import *
+from pyspark.sql.types import (StructField,StringType,IntegerType,StructType)
 
-class WAV():
-    a=0
-
+class WAV:
+    
+    PATH_FILES_WAV = Path.get_wav_file_path()
+    
 
     @staticmethod
-    def printw():
-        file_path= __file__      
-        head, sep, tail = file_path.partition('LSCproject\\')
-        project_path = head+sep
-        print('h-',head,'\n\n\n','s-',sep,'t-',tail)
-        Path.get_database_path()
-       
+    def wav_files():
+        wav_files = [f for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
+        data_schema = [StructField('Patient_Number',IntegerType(),True)]
+            column = wav_files[0].split('_')
+      
+    
+
