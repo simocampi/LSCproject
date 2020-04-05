@@ -12,7 +12,7 @@ class WAV:
     def wav_files():
         wav_files = [f for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
         data_schema = [StructField('Patient_Number',IntegerType(),True)]
-            column = wav_files[0].split('_')
+        column = wav_files[0].split('_')
       
     
 
