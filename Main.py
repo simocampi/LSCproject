@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.functions import col
 from pyspark.sql.window import Window
-from pyspark.sql import Row, functions as F
+from pyspark.sql.functions import format_number 
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from DataManipulation.Utils.Path import Path
@@ -29,8 +29,11 @@ rdd_patient_diagnosis = patient_diagnosis.get_rdd()
 #       return x
 #
 #rdd_demographic_info=rdd_demographic_info.map(bmi)
+
 rdd_demographic_info=rdd_demographic_info.toDF()
 rdd_demographic_info_adult = rdd_demographic_info.select('*').where('Age >= 18')
 rdd_demographic_info_child= rdd_demographic_info.withColumn("Adult_BMI", col("Child_weight")/(col("Child_height")/100)**2).where("Age < 18").union(rdd_demographic_info_adult)
 
 rdd_demographic_info_child.show(100)
+
+
