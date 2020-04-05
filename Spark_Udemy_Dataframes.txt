@@ -1,0 +1,69 @@
+DATAFRAMES
+
+---------------BASIS----------------------------------------
+
+- possibility to define schema: 
+   
+    schema =[StructField('column',InstancesOfType,boolean,....,..]
+    struc_schema = StructType(fields = schema)
+    data_frame =  spark.read.csv('file.csv', schema= struc_schema)
+    data_frame.printSchema()
+
+df['colname'] --> take a column
+df.select('col_name').show()
+df.head(2) -> first 2 rows -> df.head(2)[0] -> first roww object
+df.select(['col1',col2]).show() -> select and show multiple columns
+
+df.withColumn('newCol', df['coltoReplaceOrToAdd']) -> add a column or replace an existing column
+
+df.withColumnRenamed('colName','NewColName') -> renameColumn
+
+
+------------------BASIC OPERATION---------------------------------------------
+
+df.filter( (df['Col'] < 200 ) | (df['col2'] > 200) ).show()
+
+| -> or,  &-> and,  ~ -> not, == -> equality
+
+- collect() -> return row object
+
+    res = df.collect() --> row=res[0] -> first row
+    row.asDic() -> convert in dictionary
+
+- df.groupBy("colName").mean() -> (or max(), min(), count())
+
+- df.agg({'ColName':'Operation(ex:sum, max, min, mean)'})  -> take dict
+    ex: 
+        group_data = df.groupBy("Compan"y)
+        group_data.agg({'Sales':'max'}).show()
+
+-  from pyspark.sql.functions import countDistinct,avg,stddev
+
+   df.select(countDistinct('ColName').alias('newNameOfCol')).show()     (or avg()..)
+     
+- from pyspark.sql.functions import format_number  
+  
+   std = df.select(stddev("colName").alias('NewName'))
+   std.select(format_number('NewName'),2) -> 2 number arounded
+
+df.orderBy(df['col'].desc())
+
+
+
+---------------Missing DATA--------------------
+
+DROP
+    df.na.drop().show() -> delete missing data_frame
+    df.na.drop(thresh=2).show() -> delete rows with >= 2 missing value
+    df.na.drop(how='any'/'all').show() -> delete missing data_frame
+    df.na.drop(subset=['col'] ).show() -> delete row with 'col'=null
+
+FILL
+
+df.na.fill(FillVAlue,subset=['Col']) -> fill null value in 'col'
+
+fill null with mean value
+    mean = df.select(mean(df['col']))df.collect()
+    mean _val= mean[0][0]  
+    df.na.fill(mean_val,['col'])
+ 
