@@ -1,4 +1,4 @@
-from DataManipulation.Utils.Path import Path
+from Utils.Path import *
 
 class DemographicInfo(object):
     
