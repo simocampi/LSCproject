@@ -10,9 +10,11 @@ class WAV:
 
     @staticmethod
     def wav_files():
-        wav_files = [f for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
-        data_schema = [StructField('Patient_Number',IntegerType(),True)]
-            column = wav_files[0].split('_')
+        wav_files = [f[:-4] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
+        for f in wav_files:
+            print(f)
+        #data_schema = [StructField('Patient_Number',IntegerType(),True)]
+        #    column = wav_files[0].split('_')
       
     
 
