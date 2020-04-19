@@ -9,31 +9,32 @@ from DataManipulation.Utils.Path import Path
 from pyspark.sql import functions as F
 import sys,os
 from importlib import reload
-
+from Utils.BMI import replace_bmi_child
 
 spark_session = SparkSession.builder \
                 .master('local') \
                 .appName('LSC_PROJECT') \
                 .getOrCreate()
 
+# ----the dataframe containing the informations about patients is created
 demographic_info = DemographicInfo(spark_session)
+
+# ----the diagnosis dataframe is created
 patient_diagnosis = PatientDiagnosis(spark_session)
 
-rdd_demographic_info = demographic_info.get_rdd()
-rdd_patient_diagnosis = patient_diagnosis.get_rdd()
+# ----visualize first 20 rows and the schema 
+#df_patient_diagnosis=patient_diagnosis.get_DataFrame()
+#df_patient_diagnosis.show()
+#df_patient_diagnosis.printSchema()
 
-# map function
-#def bmi(x):
-#       if x['Age']<18:
-#              x['Adult_BMI']=x['Child_weight'] / (x['Child_height']/100)**2
-#       return x
-#
-#rdd_demographic_info=rdd_demographic_info.map(bmi)
+# ----visualize first 20 rows and the schema
+#df_demographic_info = demographic_info.get_DataFrame()
+#df_demographic_info.show() 
+#df_demographic_info.printSchema()
 
-rdd_demographic_info=rdd_demographic_info.toDF()
-rdd_demographic_info_adult = rdd_demographic_info.select('*').where('Age >= 18')
-rdd_demographic_info_child= rdd_demographic_info.withColumn("Adult_BMI", col("Child_weight")/(col("Child_height")/100)**2).where("Age < 18").union(rdd_demographic_info_adult)
+# get rid of the Child's informations => now BMI column contains the BMI for both Adult and Children
+rdd_demographic_info=demographic_info.get_Rdd()
+rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_child(p)).toDF(demographic_info.shrank_schema) # new schema DemographicInfo
 
-rdd_demographic_info_child.show(100)
 
 

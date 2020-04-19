@@ -31,3 +31,31 @@ local Spark execution:
 .\spark-2.4.5-bin-hadoop2.7\bin\spark-submit C:\Users\simoc\Documents\GitHub\LSCproject\Spark.py
 
 C:\Users\carot\Desktop\Ale\LSC_spark\spark-2.4.5-bin-hadoop2.7\bin\spark-submit .\Main.py
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+demographic_info.csv:
+
+the original file has 6 columns:
+
+  - Patient number
+  - Age
+  - Sex
+  - Adult BMI (kg/m2)
+  - Child Weight (kg)
+  - Child Height (cm) must be converted in m
+
+In the original file the BMI was available only for patient with age >= 18; BMI for children is calculated using  Child Weight and Child Height using the following formula:
+
+Child weight / (Child height / 100)**2 
+
+
+Steps:
+
+1) Get rid of Child Weight and Child Height: now the schema has 4 columns:
+	- Patient number
+  	- Age
+  	- Sex
+  	- BMI (kg/m2)
+
+

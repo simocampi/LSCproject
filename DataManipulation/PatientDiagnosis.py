@@ -1,18 +1,24 @@
 from DataManipulation.Utils.Path import Path
+from pyspark.sql.types import StringType, IntegerType, FloatType, StructType, StructField
 
 class PatientDiagnosis(object):
     
     def __init__(self, spark_session):
-        
-        PATIENT_DIAGNOSIS_FILE = 'patient_diagnosis.csv'
-        PATIENT_DIAGNOSIS_PATH= Path.get_database_path()+ PATIENT_DIAGNOSIS_FILE
+
+        self.schema = [StructField('Patient_number', IntegerType(), False), 
+                        StructField('Diagnosis', StringType(), False)]
+
+        self.data_structure = StructType(self.schema)
+
+        self.PATIENT_DIAGNOSIS_FILE = 'patient_diagnosis.csv'
+        self.PATIENT_DIAGNOSIS_PATH= Path.get_database_path()+ self.PATIENT_DIAGNOSIS_FILE
 
         self.spark_session= spark_session
-        self.rdd = spark_session.read.format('csv').option("sep", ",") \
-                .option("inferSchema", "true") \
-                .option("header", "false") \
-                .load(PATIENT_DIAGNOSIS_PATH).rdd
+        self.dataFrame = spark_session.read.csv(self.PATIENT_DIAGNOSIS_PATH, sep=',', schema = self.data_structure)
 
 
-    def get_rdd(self):
-        return self.rdd
+    def get_DataFrame(self):
+        return self.dataFrame 
+
+    def get_Rdd(self):
+        return self.dataFrame.rdd
