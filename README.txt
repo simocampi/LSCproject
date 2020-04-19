@@ -31,3 +31,9 @@ local Spark execution:
 .\spark-2.4.5-bin-hadoop2.7\bin\spark-submit C:\Users\simoc\Documents\GitHub\LSCproject\Spark.py
 
 C:\Users\carot\Desktop\Ale\LSC_spark\spark-2.4.5-bin-hadoop2.7\bin\spark-submit .\Main.py
+
+
+
+
+CODE DA RICONTROLLARE:
+-si utilizzano tuttel le colonne del dataFrame recordingInfo creato in wav.py?(Chest_Location, Acquisition_Mode, Recording_Equipement)

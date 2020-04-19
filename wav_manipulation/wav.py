@@ -1,9 +1,13 @@
 from os import *
+import io
 from os.path import *
 from Utils.Path import *
-from pyspark.sql.types import (StructField,StringType,IntegerType,StructType)
+from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import split, substring, col, regexp_replace
+from pyspark.sql.functions import lit
+from pyspark.sql.functions import *
+
 
 class WAV(object):
     
@@ -12,7 +16,7 @@ class WAV(object):
     def __init__(self,spark_session):
         self.spark_session = spark_session
 
-    def wav_filename(self):
+    def recording_info(self):
         wav_files = [[f[:-4]] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
 
         wav_DF = self.spark_session.createDataFrame(wav_files, StructType([StructField("FileName", StringType(), False)]))
@@ -26,3 +30,24 @@ class WAV(object):
 
         wav_DF.printSchema()
         wav_DF.show()
+
+    def recording_annotation(self):
+        filenames = [[f[:-4] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.txt'))]]
+
+        original_schema =  [StructField("Start", FloatType(), True),StructField("End", FloatType(), True),StructField("Crackels", IntegerType(), True),StructField("Wheezes", IntegerType(), True)]
+
+        data_structure = StructType(original_schema)
+
+        
+        df = self.spark_session.read.csv(path=WAV.PATH_FILES_WAV+'\\*.txt',header=False, schema= data_structure, sep='\t').withColumn("Filename", input_file_name() )
+        split_col = split(df['Filename'], '\\')
+        df = df.withColumn("Filename", split_col.getItem(2))
+
+
+        #df = df.select(regexp_replace('Filename',WAV.PATH_FILES_WAV,''))
+        #df= self.spark_session.read.csv(path=WAV.PATH_FILES_WAV+'/*.txt').option('delimiter','\\s+')
+        df.show()
+        print(df.count())
+        df.printSchema()
+        
+

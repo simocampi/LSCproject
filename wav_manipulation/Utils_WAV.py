@@ -7,10 +7,7 @@ class Utils_Wav(object):
     def read_wav(self, path_wav):
         fs , data = wf.read(path_wav)
 
-        
-
-
-
+    
 #wave file reader
 #Will resample all files to the target sample rate and produce a 32bit float array
 def read_wav_file(str_filename, target_rate):
