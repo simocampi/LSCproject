@@ -42,20 +42,6 @@ class WAV(object):
 
         data_structure = StructType(original_schema)
 
-<<<<<<< HEAD
-        
-        df = self.spark_session.read.csv(path=WAV.PATH_FILES_WAV+'\\*.txt',header=False, schema= data_structure, sep='\t').withColumn("Filename", input_file_name() )
-        #df = df.withColumn("Filename", split_col.getItem(0))
-        rdd= df.rdd.map(lambda x: x[4].replace(WAV.PATH_FILES_WAV,''))
-        
-        df2 = rdd.toDF()
-        
-        #df = rdd.toDF()
-        #df = df.select(regexp_replace('Filename',WAV.PATH_FILES_WAV,''))
-        #df= self.spark_session.read.csv(path=WAV.PATH_FILES_WAV+'/*.txt').option('delimiter','\\s+')
-        df.show()
-        print(df.count())
-=======
         df = self.spark_session.read.\
             csv(path=WAV.PATH_FILES_WAV+'\\*.txt', header=False, schema= data_structure, sep='\t').\
             withColumn("Filename", reverse(split(input_file_name(), "/")).getItem(0) ).\
@@ -64,7 +50,6 @@ class WAV(object):
         
 
         df.show(20, False)
->>>>>>> b32e1ef8eee2fcab0a60edeeb83dc9eeec6fa623
         df.printSchema()
         
 
