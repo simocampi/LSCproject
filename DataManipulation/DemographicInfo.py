@@ -21,7 +21,7 @@ class DemographicInfo(object):
         self.data_structure = StructType(self.original_schema)
 
         self.DEMOGRAPHIC_INFO_FILE = 'demographic_info.csv'
-        self.DEMOGRAPHIC_INFO_PATH = Path.get_database_path() + self.DEMOGRAPHIC_INFO_FILE
+        self.DEMOGRAPHIC_INFO_PATH = Path.get_database_path() + self.DEMOGRAPHIC_INFO_FILE #'hdfs://master:9000/user/user24/LSCproject/Database/demographic_info.csv' 
 
         self.spark_session= spark_session
 
