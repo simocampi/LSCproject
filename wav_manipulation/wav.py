@@ -4,9 +4,10 @@ from os.path import *
 from Utils.Path import *
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import split, substring, col, regexp_replace
+from pyspark.sql.functions import split, substring, col, regexp_replace, reverse
 from pyspark.sql.functions import lit
 from pyspark.sql.functions import *
+from time import time
 
 
 class WAV(object):
@@ -34,10 +35,14 @@ class WAV(object):
     def recording_annotation(self):
         filenames = [[f[:-4] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.txt'))]]
 
-        original_schema =  [StructField("Start", FloatType(), True),StructField("End", FloatType(), True),StructField("Crackels", IntegerType(), True),StructField("Wheezes", IntegerType(), True)]
+        original_schema = [ StructField("Start", FloatType(), True),
+                            StructField("End",  FloatType(), True),
+                            StructField("Crackels", IntegerType(), True),
+                            StructField("Wheezes", IntegerType(), True)]
 
         data_structure = StructType(original_schema)
 
+<<<<<<< HEAD
         
         df = self.spark_session.read.csv(path=WAV.PATH_FILES_WAV+'\\*.txt',header=False, schema= data_structure, sep='\t').withColumn("Filename", input_file_name() )
         #df = df.withColumn("Filename", split_col.getItem(0))
@@ -50,6 +55,16 @@ class WAV(object):
         #df= self.spark_session.read.csv(path=WAV.PATH_FILES_WAV+'/*.txt').option('delimiter','\\s+')
         df.show()
         print(df.count())
+=======
+        df = self.spark_session.read.\
+            csv(path=WAV.PATH_FILES_WAV+'\\*.txt', header=False, schema= data_structure, sep='\t').\
+            withColumn("Filename", reverse(split(input_file_name(), "/")).getItem(0) ).\
+            withColumn("duration", col("End") - col("Start"))
+
+        
+
+        df.show(20, False)
+>>>>>>> b32e1ef8eee2fcab0a60edeeb83dc9eeec6fa623
         df.printSchema()
         
 
