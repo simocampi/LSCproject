@@ -59,3 +59,8 @@ Steps:
   	- BMI (kg/m2)
 
 
+
+
+
+CODE DA RICONTROLLARE:
+-si utilizzano tuttel le colonne del dataFrame recordingInfo creato in wav.py?(Chest_Location, Acquisition_Mode, Recording_Equipement)

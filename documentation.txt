@@ -1,0 +1,58 @@
+*********************************************************
+**************          DataFrame          **************
+*********************************************************
+
+Recording_info:
+    -FileName:
+
+    -Patient_ID:
+        (101,102,...,226)
+
+    -Recording_idx:
+
+    -Chest_Location:
+        a. Trachea (Tc)
+        b. Anterior left (Al)
+        c. Anterior right (Ar)
+        d. Posterior left (Pl)
+        e. Posterior right (Pr)
+        f. Lateral left (Ll)
+        g. Lateral right (Lr)
+
+    -Acquisition_Mode:
+        a. sequential/single channel (sc), 
+        b. simultaneous/multichannel (mc)
+
+    -Recording_Equipement:
+        a. AKG C417L Microphone (AKGC417L), 
+        b. 3M Littmann Classic II SE Stethoscope (LittC2SE), 
+        c. 3M Litmmann 3200 Electronic Stethoscope (Litt3200), 
+        d.  WelchAllyn Meditron Master Elite Electronic Stethoscope (Meditron)
+    
+Created in wave.py function recording_info()
+
+-------------------------------------------------------------------------------------
+
+    Recording_annotation:
+        -FileName:
+
+        -Patient_ID:
+            ID of the patient of this recording
+
+        -Start: 
+            beginning of respiratory cycle
+
+        -End: 
+            end of respiratory cycle
+
+        -Type: 
+            Presence/absence of crackles or wheezes
+
+        -Duration:
+            duration of respiratory cycle
+
+Created in wave.py function recording_annotation()
+
+
+-------------------------------------------------------------------------------------
+
