@@ -5,7 +5,7 @@ from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.Path import *
 import sys,os
-from wav_manipulation.wav import WAV
+from wav_manipulation.wav import *
 
 
 spark_session = SparkSession.builder \

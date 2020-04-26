@@ -40,10 +40,12 @@ class WAV(object):
 
         
         df = self.spark_session.read.csv(path=WAV.PATH_FILES_WAV+'\\*.txt',header=False, schema= data_structure, sep='\t').withColumn("Filename", input_file_name() )
-        split_col = split(df['Filename'], '\\')
-        df = df.withColumn("Filename", split_col.getItem(2))
-
-
+        #df = df.withColumn("Filename", split_col.getItem(0))
+        rdd= df.rdd.map(lambda x: x[4].replace(WAV.PATH_FILES_WAV,''))
+        
+        df2 = rdd.toDF()
+        
+        #df = rdd.toDF()
         #df = df.select(regexp_replace('Filename',WAV.PATH_FILES_WAV,''))
         #df= self.spark_session.read.csv(path=WAV.PATH_FILES_WAV+'/*.txt').option('delimiter','\\s+')
         df.show()
