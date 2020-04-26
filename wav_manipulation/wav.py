@@ -43,7 +43,7 @@ class WAV(object):
         data_structure = StructType(original_schema)
 
         df = self.spark_session.read.\
-            csv(path=WAV.PATH_FILES_WAV+'\\*.txt', header=False, schema= data_structure, sep='\t').\
+            csv(path=WAV.PATH_FILES_WAV+'/*.txt', header=False, schema= data_structure, sep='\t').\
             withColumn("Filename", reverse(split(input_file_name(), "/")).getItem(0) ).\
             withColumn("duration", col("End") - col("Start"))
 

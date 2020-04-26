@@ -8,10 +8,10 @@ import sys,os
 #from importlib import reload
 from Utils.BMI import replace_bmi_child
 from wav_manipulation.wav import *
+import pandas as pd
 
 
 spark_session = SparkSession.builder \
-                .master('local') \
                 .appName('LSC_PROJECT') \
                 .getOrCreate()
 

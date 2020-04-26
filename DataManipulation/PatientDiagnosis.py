@@ -1,5 +1,6 @@
 from DataManipulation.Utils.Path import Path
 from pyspark.sql.types import StringType, IntegerType, FloatType, StructType, StructField
+import pandas as pd
 
 class PatientDiagnosis(object):
     
