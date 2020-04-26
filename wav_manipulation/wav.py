@@ -30,7 +30,7 @@ class WAV(object):
         wav_DF = wav_DF.withColumn("Recording_Equipement", split_col.getItem(4))
 
         wav_DF.printSchema()
-        wav_DF.show()
+        wav_DF.show(5)
 
     def recording_annotation(self):
         filenames = [[f[:-4] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.txt'))]]
@@ -49,7 +49,7 @@ class WAV(object):
 
         
 
-        df.show(20, False)
+        df.show(5, False)
         df.printSchema()
         
 
