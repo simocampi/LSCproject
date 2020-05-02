@@ -19,9 +19,11 @@ class PatientDiagnosis(object):
         #self.dataFrame = spark_session.read.csv(self.PATIENT_DIAGNOSIS_PATH, sep=',', schema = self.data_structure)
         
         # tapullata increddibbile START
-        df = pd.read_csv(self.PATIENT_DIAGNOSIS_PATH, sep=',', header=None) 
-        self.dataFrame = spark_session.createDataFrame(df,schema=self.data_structure)
+        #df = pd.read_csv(self.PATIENT_DIAGNOSIS_PATH, sep=',', header=None) 
+        #self.dataFrame = spark_session.createDataFrame(df,schema=self.data_structure)
         # tapullata increddibbile END
+
+        self.dataFrame = self.spark_session.read.csv(path=self.PATIENT_DIAGNOSIS_PATH, header=None, schema= self.data_structure, sep=',')
 
     def get_DataFrame(self):
         return self.dataFrame 
