@@ -6,8 +6,7 @@ class Path():
     path_separator = '\\'
     if not RunningOnLocal:
         path_sepatator = '/'
-
-    
+        
     #Get Path of Project directory
     @staticmethod
     def  get_database_path():
@@ -28,6 +27,5 @@ class Path():
         file_path= __file__
         
         head, sep, tail = file_path.partition('LSCproject\\')
-
         project_path = head+sep
         return project_path+'Database\\audio_and_txt_files\\'

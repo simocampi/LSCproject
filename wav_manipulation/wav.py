@@ -8,6 +8,7 @@ from pyspark.sql.functions import split, substring, col, regexp_replace, reverse
 from pyspark.sql.functions import lit
 from pyspark.sql.functions import *
 from time import time
+import pandas as pd
 
 
 class WAV(object):
@@ -15,10 +16,14 @@ class WAV(object):
     PATH_FILES_WAV = Path.get_wav_file_path()
     
     def __init__(self,spark_session):
+        super().__init__()
         self.spark_session = spark_session
 
     def recording_info(self):
-        wav_files = [[f[:-4]] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
+        
+        filenames = pd.read_csv('Filenames.csv',header=0, index_col=False)
+        #wav_files = [[f[:-4]] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
+        wav_files = [[f[:-4]] for f in filenames.values[:,1] ] 
 
         wav_DF = self.spark_session.createDataFrame(wav_files, StructType([StructField("FileName", StringType(), False)]))
 
@@ -33,8 +38,6 @@ class WAV(object):
         wav_DF.show(5)
 
     def recording_annotation(self):
-        filenames = [[f[:-4] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.txt'))]]
-
         idx_fileName = len(WAV.PATH_FILES_WAV.split(Path.path_separator))
 
 
@@ -54,5 +57,30 @@ class WAV(object):
 
         df.show(5, False)
         df.printSchema()
+
+
+
+
+
+
+
+
+    
+    def get_fileNames_test(self):
+        path = Path.get_wav_file_path()
+
+        if Path.RunningOnLocal:
+            list_of_fileName = [f[:-4] for f in listdir(path) if (isfile(join(path, f)) and f.endswith('.txt'))]
+        else:
+            args = "hdfs dfs -ls "+path+" | awk '{print $8}'"
+            proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+            s_output, s_err = proc.communicate()
+            list_of_fileName = s_output.split()
+        
+        print("\n#################################################################")
+        print(len(list_of_fileName))
+        print(list_of_fileName)
+        print("\n#################################################################")
         
 
