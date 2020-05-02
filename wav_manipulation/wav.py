@@ -34,6 +34,7 @@ class WAV(object):
 
     def recording_annotation(self):
         filenames = [[f[:-4] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.txt'))]]
+        idx_fileName = len(WAV.PATH_FILES_WAV)
 
         original_schema = [ StructField("Start", FloatType(), True),
                             StructField("End",  FloatType(), True),
@@ -43,8 +44,8 @@ class WAV(object):
         data_structure = StructType(original_schema)
 
         df = self.spark_session.read.\
-            csv(path=WAV.PATH_FILES_WAV+'/*.txt', header=False, schema= data_structure, sep='\t').\
-            withColumn("Filename", reverse(split(input_file_name(), "/")).getItem(0) ).\
+            csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= data_structure, sep='\t').\
+            withColumn("Filename", split(input_file_name(), "/").getItem(0) ).\
             withColumn("duration", col("End") - col("Start"))
 
         
