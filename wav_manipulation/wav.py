@@ -20,7 +20,7 @@ class WAV(object):
 
     def recording_info(self):
         
-        filenames = pd.read_csv('Filenames.csv',header=0, index_col=False)
+        filenames = pd.read_csv('FILENAMES.csv',header=0, index_col=False)
         #wav_files = [[f[:-4]] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
         wav_files = [[f[:-4]] for f in filenames.values[:,1] ] 
 
