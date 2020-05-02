@@ -26,9 +26,9 @@ class DemographicInfo(object):
 
         self.spark_session= spark_session
 
-        # tapullata increddibbile START
         self.dataFrame = self.spark_session.read \
-            .csv(path=self.DEMOGRAPHIC_INFO_PATH, header=0, schema= self.data_structure, sep=',')
+            .csv(path=self.DEMOGRAPHIC_INFO_PATH, header=False, schema= self.data_structure, sep=',')
+        print('DAPPU MANGIA I GATTI: ', self.DEMOGRAPHIC_INFO_PATH)
 
     def get_DataFrame(self):
         return self.dataFrame

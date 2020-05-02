@@ -22,14 +22,14 @@ demographic_info = DemographicInfo(spark_session)
 patient_diagnosis = PatientDiagnosis(spark_session)
 
 # ----visualize first 20 rows and the schema 
-#df_patient_diagnosis=patient_diagnosis.get_DataFrame()
-#df_patient_diagnosis.show()
-#df_patient_diagnosis.printSchema()
+df_patient_diagnosis=patient_diagnosis.get_DataFrame()
+df_patient_diagnosis.show()
+df_patient_diagnosis.printSchema()
 
 # ----visualize first 20 rows and the schema
-#df_demographic_info = demographic_info.get_DataFrame()
-#df_demographic_info.show() 
-#df_demographic_info.printSchema()
+df_demographic_info = demographic_info.get_DataFrame()
+df_demographic_info.show() 
+df_demographic_info.printSchema()
 
 # get rid of the Child's informations => now BMI column contains the BMI for both Adult and Children
 rdd_demographic_info=demographic_info.get_Rdd()
