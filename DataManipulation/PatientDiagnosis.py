@@ -23,7 +23,7 @@ class PatientDiagnosis(object):
         #self.dataFrame = spark_session.createDataFrame(df,schema=self.data_structure)
         # tapullata increddibbile END
 
-        self.dataFrame = self.spark_session.read.csv(path=self.PATIENT_DIAGNOSIS_PATH, header=None, schema= self.data_structure, sep=',')
+        self.dataFrame = self.spark_session.read.csv(path=self.PATIENT_DIAGNOSIS_PATH, header=False, schema= self.data_structure, sep=',')
 
     def get_DataFrame(self):
         return self.dataFrame 

@@ -37,10 +37,6 @@ class WAV(object):
 
         idx_fileName = len(WAV.PATH_FILES_WAV.split(Path.path_separator))
 
-        print("_________________________________________\n", 
-              WAV.PATH_FILES_WAV,"\n",
-              idx_fileName,
-              "\n_________________________________________\n")
 
         original_schema = [ StructField("Start", FloatType(), True),
                             StructField("End",  FloatType(), True),
