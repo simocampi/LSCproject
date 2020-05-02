@@ -27,8 +27,8 @@ class DemographicInfo(object):
         self.spark_session= spark_session
 
         # tapullata increddibbile START
-        df = self.spark_session.read.\
-            csv(path=self.DEMOGRAPHIC_INFO_PATH, header=0, schema= self.data_structure, sep=',')
+        self.dataFrame = self.spark_session.read \
+            .csv(path=self.DEMOGRAPHIC_INFO_PATH, header=0, schema= self.data_structure, sep=',')
 
     def get_DataFrame(self):
         return self.dataFrame

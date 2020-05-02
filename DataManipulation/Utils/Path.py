@@ -1,7 +1,7 @@
 import os
 class Path():
 
-    RunningOnLocal = #(os.name == 'nt')
+    RunningOnLocal = (True == True)#os.name == 'nt'
     ClusterDatabasePath = 'hdfs://master:9000/user/user24/'
     path_separator = '\\'
     if not RunningOnLocal:
