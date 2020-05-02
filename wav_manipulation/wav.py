@@ -16,7 +16,6 @@ class WAV(object):
     PATH_FILES_WAV = Path.get_wav_file_path()
     
     def __init__(self,spark_session):
-        super().__init__()
         self.spark_session = spark_session
 
     def recording_info(self):
@@ -73,6 +72,7 @@ class WAV(object):
             list_of_fileName = [f[:-4] for f in listdir(path) if (isfile(join(path, f)) and f.endswith('.txt'))]
         else:
             args = "hdfs dfs -ls "+path+" | awk '{print $8}'"
+            print(args)
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
             s_output, s_err = proc.communicate()
