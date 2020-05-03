@@ -1,4 +1,5 @@
 from os import listdir
+import os
 import io
 from os.path import *
 from DataManipulation.Utils.Path import Path
@@ -68,7 +69,7 @@ class WAV(object):
 
     
     def get_fileNames_test(self):
-        print("£££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££\n\n")
+        print("***************************************************************************************************************\n\n")
         path = Path.get_wav_file_path()
         list_of_fileName = []
         try:
@@ -76,7 +77,7 @@ class WAV(object):
             for line in indexingFiles:
                 list_of_fileName.append(line)
         except IOError:
-            print("Indexing file for path \'{}\' not present, creating it...".format(path))
+            print("\nIndexing file for path \'{}\' not present, creating it...".format(path))
             list_of_fileName = self.createIndexingFile_andGetContent(folder_path=path)
             i=0
         finally:
@@ -95,13 +96,16 @@ class WAV(object):
             return f
         else:
             #UNIGE CLUSTER SERVER
-            args = "hdfs dfs -cat "+folder_path+"\index_fileName.txt'"
-            print(args)#################################################################### DEBUG PRINT
-            s_output, s_err = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            for line in s_err:
-                print(line)#################################################################### DEBUG PRINT
+            args = "hdfs dfs -cat "+folder_path+"index_fileName.txt"
+            print("args opening: ",args)#################################################################### DEBUG PRINT
+            proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            stdout, stderr = proc.communicate()
+
+            if proc.returncode != 0:
+                print("Return code: ", proc.returncode)#################################################################### DEBUG PRINT
+                print("STDERR: ",stderr)#################################################################### DEBUG PRINT
                 raise IOError('Indexing file not found.')
-            return s_output
+            return stdout#proc.communicate()[0].decode('utf-8')
     
 
     def createIndexingFile_andGetContent(self, folder_path):
@@ -116,24 +120,32 @@ class WAV(object):
             indexingFiles.close()
         else:
             #UNIGE CLUSTER SERVER
-            args = "hdfs dfs -ls "+folder_path+" | awk '{print $8}'"
-            print(args)#################################################################### DEBUG PRINT
+            args = "hdfs dfs -ls "+folder_path+"*.txt | awk '{print $8}'"
+            print("args creating 1: ",args)#################################################################### DEBUG PRINT
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
             s_output, s_err = proc.communicate()
             tmp_list = s_output.split()
+            print(Path.path_separator)
+            print(Path.RunningOnLocal)
             for line in tmp_list:
-                fileName = line.split(Path.path_separator)[-1]
+                print(line)
+                fileName = line.split("/")[-1]
                 list_of_fileName.append(fileName[:-4])
+            
+            print("\n\n")
+            print(list_of_fileName[0])
 
             #save file in hadoop file system
             tmpFile = open('tmp','w')
-            tmpFile.writelines(list_of_fileName)
+            for fileName in tmp_list:
+                tmpFile.write(fileName+"\n")
             tmpFile.close()
 
-            args = "hdfs dfs -put "+path+"tmp"
-            print(args)#################################################################### DEBUG PRINT
-            proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            args = "hdfs dfs -put tmp "+folder_path+"index_fileName.txt"
+            print("args creating 2: ",args)#################################################################### DEBUG PRINT
+            #proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            #os.remove('tmp')
 
         return list_of_fileName
 
