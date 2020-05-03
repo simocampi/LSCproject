@@ -61,12 +61,6 @@ class WAV(object):
         df.printSchema()
 
 
-
-
-
-
-
-
     
     def get_fileNames_test(self):
         print("***************************************************************************************************************\n\n")
@@ -74,6 +68,7 @@ class WAV(object):
         list_of_fileName = []
         try:
             indexingFiles = self.openIndexingFiles(folder_path=path)
+            print(indexingFiles)
             for line in indexingFiles:
                 list_of_fileName.append(line)
         except IOError:
@@ -85,6 +80,7 @@ class WAV(object):
             #indexingFiles.close()
         
         print("\n#################################################################")
+        print(list_of_fileName[0])
         print(len(list_of_fileName), " - 906")
         print("\n#################################################################")
     
@@ -105,7 +101,7 @@ class WAV(object):
                 print("Return code: ", proc.returncode)#################################################################### DEBUG PRINT
                 print("STDERR: ",stderr)#################################################################### DEBUG PRINT
                 raise IOError('Indexing file not found.')
-            return stdout#proc.communicate()[0].decode('utf-8')
+            return stdout.split()#proc.communicate()[0].decode('utf-8')
     
 
     def createIndexingFile_andGetContent(self, folder_path):
@@ -129,7 +125,6 @@ class WAV(object):
             print(Path.path_separator)
             print(Path.RunningOnLocal)
             for line in tmp_list:
-                print(line)
                 fileName = line.split("/")[-1]
                 list_of_fileName.append(fileName[:-4])
             
@@ -138,13 +133,14 @@ class WAV(object):
 
             #save file in hadoop file system
             tmpFile = open('tmp','w')
-            for fileName in tmp_list:
+            for fileName in list_of_fileName:
                 tmpFile.write(fileName+"\n")
             tmpFile.close()
 
             args = "hdfs dfs -put tmp "+folder_path+"index_fileName.txt"
             print("args creating 2: ",args)#################################################################### DEBUG PRINT
-            #proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            print("Return code: ", proc.returncode)#################################################################### DEBUG PRINT
             #os.remove('tmp')
 
         return list_of_fileName

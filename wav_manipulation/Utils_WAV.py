@@ -11,8 +11,9 @@ class Wav_Preprocessing(object):
     #Will resample all files to the target sample rate and produce a 32bit float array
     def read_wav_file(self, str_filename, target_rate):
         wav = wave.open(str_filenaame, mode = 'r')
-        (sample_rate, data) = extract2FloatArr(wav,str_filename)
-    
+        
+        sample_rate = wav.get
+        data     
         if (sample_rate != target_rate):
             ( _ , data) = resample(sample_rate, data, target_rate)
         
