@@ -22,10 +22,7 @@ class WAV(object):
         self.spark_session = spark_session
 
     def recording_info(self):
-        
-        filenames = pd.read_csv('FILENAMES.csv',header=0, index_col=False)
-        #wav_files = [[f[:-4]] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
-        wav_files = [[f[:-4]] for f in filenames.values[:,1] ] 
+        wav_files = self.get_fileNames_test()
 
         wav_DF = self.spark_session.createDataFrame(wav_files, StructType([StructField("FileName", StringType(), False)]))
 
@@ -65,8 +62,9 @@ class WAV(object):
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()
         list_of_fileName = []
-        
+
         try:
+            #IF THE FILE ALREDY EXIST
             indexingFiles = self.openIndexingFiles(folder_path=path)
             print(indexingFiles)
             for line in indexingFiles:
@@ -74,10 +72,10 @@ class WAV(object):
         except IOError:
             print("\nIndexing file for path \'{}\' not present, creating it...".format(path))
             list_of_fileName = self.createIndexingFile_andGetContent(folder_path=path)
-            i=0
         finally:
             print("ciao")
             #indexingFiles.close()
+        return [list_of_fileName]
     
 
     def openIndexingFiles(self, folder_path):
