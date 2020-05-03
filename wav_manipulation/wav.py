@@ -24,9 +24,10 @@ class WAV(object):
         self.spark_context = spark_context
 
     def read_was_as_binary(self,spark_context):
-        binary_wave = spark_context.binaryFiles(Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav')
+        list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav'])
+        #binary_wave = spark_context.binaryFiles(Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav')
         # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
-        # rdd = self.nomedellavariablecheconterraifilenameWAV.map(lambda file: (file, wav.open(file))) cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
+        binary_wave = list_filename.map(lambda file: (file, wave.open(file))) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
         return binary_wave
 
     def recording_info(self):
@@ -48,17 +49,17 @@ class WAV(object):
         idx_fileName = len(WAV.PATH_FILES_WAV.split(Path.path_separator))
 
 
-        original_schema = [ StructField("Start", FloatType(), True),
-                            StructField("End",  FloatType(), True),
-                            StructField("Crackels", IntegerType(), True),
-                            StructField("Wheezes", IntegerType(), True)]
+        original_schema = [ StructField("Start", FloatType(), False),
+                            StructField("End",  FloatType(), False),
+                            StructField("Crackels", IntegerType(), False),
+                            StructField("Wheezes", IntegerType(), False)]
 
         
         print(WAV.PATH_FILES_WAV)
         df = self.spark_session.read.\
-            csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= data_structure, sep='\t').\
+            csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= StructType(original_schema), sep='\t').\
             withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName) ).\
-            withColumn("duration", col("End") - col("Start"))
+            withColumn("Duration", col("End") - col("Start"))
 
         df.printSchema()
         df.show(2, False)
