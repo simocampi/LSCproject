@@ -38,5 +38,6 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 
 
 wav = WAV(spark_session)
+wav.get_fileNames_test()
 wav.recording_info()
 wav.recording_annotation()

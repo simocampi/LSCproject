@@ -1,4 +1,4 @@
-from os import *
+from os import listdir
 import io
 from os.path import *
 from DataManipulation.Utils.Path import Path
@@ -9,6 +9,8 @@ from pyspark.sql.functions import lit
 from pyspark.sql.functions import *
 from time import time
 import pandas as pd
+
+import subprocess
 
 
 class WAV(object):
@@ -66,21 +68,74 @@ class WAV(object):
 
     
     def get_fileNames_test(self):
+        print("£££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££££\n\n")
         path = Path.get_wav_file_path()
+        list_of_fileName = []
+        try:
+            indexingFiles = self.openIndexingFiles(folder_path=path)
+            for line in indexingFiles:
+                list_of_fileName.append(line)
+        except IOError:
+            print("Indexing file for path \'{}\' not present, creating it...".format(path))
+            list_of_fileName = self.createIndexingFile_andGetContent(folder_path=path)
+            i=0
+        finally:
+            print("ciao")
+            #indexingFiles.close()
+        
+        print("\n#################################################################")
+        print(len(list_of_fileName), " - 906")
+        print("\n#################################################################")
+    
 
+    def openIndexingFiles(self, folder_path):
         if Path.RunningOnLocal:
-            list_of_fileName = [f[:-4] for f in listdir(path) if (isfile(join(path, f)) and f.endswith('.txt'))]
+            #WINDOWS LOCAL MACHINE
+            f = open(folder_path+'index_fileName.txt', 'r')
+            return f
         else:
-            args = "hdfs dfs -ls "+path+" | awk '{print $8}'"
-            print(args)
+            #UNIGE CLUSTER SERVER
+            args = "hdfs dfs -cat "+folder_path+"\index_fileName.txt'"
+            print(args)#################################################################### DEBUG PRINT
+            s_output, s_err = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            for line in s_err:
+                print(line)#################################################################### DEBUG PRINT
+                raise IOError('Indexing file not found.')
+            return s_output
+    
+
+    def createIndexingFile_andGetContent(self, folder_path):
+        list_of_fileName = []
+        if Path.RunningOnLocal:
+            #WINDOWS LOCAL MACHINE
+            list_of_fileName = [f[:-4] for f in listdir(folder_path) if (isfile(join(folder_path, f)) and f.endswith('.txt'))]
+
+            indexingFiles = open(folder_path+'index_fileName.txt','w')
+            for fileName in list_of_fileName:
+                indexingFiles.write(fileName+"\n")
+            indexingFiles.close()
+        else:
+            #UNIGE CLUSTER SERVER
+            args = "hdfs dfs -ls "+folder_path+" | awk '{print $8}'"
+            print(args)#################################################################### DEBUG PRINT
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
             s_output, s_err = proc.communicate()
-            list_of_fileName = s_output.split()
-        
-        print("\n#################################################################")
-        print(len(list_of_fileName))
-        print(list_of_fileName)
-        print("\n#################################################################")
+            tmp_list = s_output.split()
+            for line in tmp_list:
+                fileName = line.split(Path.path_separator)[-1]
+                list_of_fileName.append(fileName[:-4])
+
+            #save file in hadoop file system
+            tmpFile = open('tmp','w')
+            tmpFile.writelines(list_of_fileName)
+            tmpFile.close()
+
+            args = "hdfs dfs -put "+path+"tmp"
+            print(args)#################################################################### DEBUG PRINT
+            proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+        return list_of_fileName
+
         
 
