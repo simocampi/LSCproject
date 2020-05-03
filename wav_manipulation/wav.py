@@ -5,10 +5,8 @@ from os.path import *
 from DataManipulation.Utils.Path import Path
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import split, substring, col, regexp_replace, reverse
-from pyspark.sql.functions import lit
+from pyspark.sql.functions import split, substring, col, regexp_replace, reverse, lit, input_file_name
 import wave
-from pyspark.sql.functions import *
 from time import time
 import pandas as pd
 
@@ -22,9 +20,10 @@ class WAV(object):
     def __init__(self,spark_session,spark_context):
         self.spark_session = spark_session
         self.spark_context = spark_context
+        self.wav_fileName = self.get_fileNames_test()         #PER DAPU
 
     def read_was_as_binary(self,spark_context):
-        list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+'*.wav'])
+        list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+filename[0]+'.wav' for filename in self.wav_fileName])
         #binary_wave = spark_context.binaryFiles(Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav')
         # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
         binary_wave = list_filename.map(lambda file: (file, wave.open(file, mode='rb'))) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
