@@ -63,9 +63,9 @@ class WAV(object):
 
     
     def get_fileNames_test(self):
-        print("***************************************************************************************************************\n\n")
         path = Path.get_wav_file_path()
         list_of_fileName = []
+        
         try:
             indexingFiles = self.openIndexingFiles(folder_path=path)
             print(indexingFiles)
@@ -78,11 +78,6 @@ class WAV(object):
         finally:
             print("ciao")
             #indexingFiles.close()
-        
-        print("\n#################################################################")
-        print(list_of_fileName[0])
-        print(len(list_of_fileName), " - 906")
-        print("\n#################################################################")
     
 
     def openIndexingFiles(self, folder_path):
@@ -93,15 +88,12 @@ class WAV(object):
         else:
             #UNIGE CLUSTER SERVER
             args = "hdfs dfs -cat "+folder_path+"index_fileName.txt"
-            print("args opening: ",args)#################################################################### DEBUG PRINT
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             stdout, stderr = proc.communicate()
 
             if proc.returncode != 0:
-                print("Return code: ", proc.returncode)#################################################################### DEBUG PRINT
-                print("STDERR: ",stderr)#################################################################### DEBUG PRINT
                 raise IOError('Indexing file not found.')
-            return stdout.split()#proc.communicate()[0].decode('utf-8')
+            return stdout.split()
     
 
     def createIndexingFile_andGetContent(self, folder_path):
@@ -117,7 +109,6 @@ class WAV(object):
         else:
             #UNIGE CLUSTER SERVER
             args = "hdfs dfs -ls "+folder_path+"*.txt | awk '{print $8}'"
-            print("args creating 1: ",args)#################################################################### DEBUG PRINT
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
             s_output, s_err = proc.communicate()
@@ -127,9 +118,6 @@ class WAV(object):
             for line in tmp_list:
                 fileName = line.split("/")[-1]
                 list_of_fileName.append(fileName[:-4])
-            
-            print("\n\n")
-            print(list_of_fileName[0])
 
             #save file in hadoop file system
             tmpFile = open('tmp','w')
@@ -138,9 +126,7 @@ class WAV(object):
             tmpFile.close()
 
             args = "hdfs dfs -put tmp "+folder_path+"index_fileName.txt"
-            print("args creating 2: ",args)#################################################################### DEBUG PRINT
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            print("Return code: ", proc.returncode)#################################################################### DEBUG PRINT
             #os.remove('tmp')
 
         return list_of_fileName
