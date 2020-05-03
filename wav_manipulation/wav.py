@@ -24,10 +24,10 @@ class WAV(object):
         self.spark_context = spark_context
 
     def read_was_as_binary(self,spark_context):
-        list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav'])
+        list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+'*.wav'])
         #binary_wave = spark_context.binaryFiles(Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav')
         # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
-        binary_wave = list_filename.map(lambda file: (file, wave.open(file))) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
+        binary_wave = list_filename.map(lambda file: (file, wave.open(file, mode='rb'))) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
         return binary_wave
 
     def recording_info(self):
@@ -65,7 +65,6 @@ class WAV(object):
         df.show(2, False)
 
 
-    
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()
         list_of_fileName = []
@@ -80,7 +79,7 @@ class WAV(object):
             list_of_fileName = self.createIndexingFile_andGetContent(folder_path=path)
 
         return list_of_fileName
-    
+
 
     def openIndexingFiles(self, folder_path):
         if Path.RunningOnLocal:

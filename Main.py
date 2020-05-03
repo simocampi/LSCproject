@@ -43,9 +43,11 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 
 wav = WAV(spark_session, spark_context)
 
-binary_wave = wav.read_was_as_binary(spark_context)
-#print(binary_wave.toDF().printSchema())
-#print(binary_wave[1])
+binary_wave_rdd = wav.read_was_as_binary(spark_context)
+
+frame_rate = binary_wave_rdd.map(lambda x : x[1].getframerate())
+
+print(frame_rate.collect())
 
 wav.recording_info()
 wav.recording_annotation()
