@@ -48,4 +48,4 @@ binary_wave = wav.read_was_as_binary(spark_context)
 #print(binary_wave[1])
 
 wav.recording_info()
-#wav.recording_annotation()
+wav.recording_annotation()

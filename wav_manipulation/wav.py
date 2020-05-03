@@ -25,13 +25,12 @@ class WAV(object):
 
     def read_was_as_binary(self,spark_context):
         binary_wave = spark_context.binaryFiles(Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav')
-        # così dovrebbe tornare un rdd (nome file, Wave_read Object)
-        # rdd = self.nomedellavariablecheconterràifilenameWAV.map(lambda file: (file, wav.open(file))) così dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi è giusta)
+        # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
+        # rdd = self.nomedellavariablecheconterraifilenameWAV.map(lambda file: (file, wav.open(file))) cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
         return binary_wave
 
     def recording_info(self):
         wav_files = self.get_fileNames_test()
-        #print(type(wav_files), len(wav_files), type(wav_files[0]), len(wav_files[0]), wav_files[0])
 
         wav_DF = self.spark_session.createDataFrame(wav_files, StructType([StructField("FileName", StringType(), False)]))
 
@@ -54,7 +53,7 @@ class WAV(object):
                             StructField("Crackels", IntegerType(), True),
                             StructField("Wheezes", IntegerType(), True)]
 
-        data_structure = StructType(original_schema)
+        
         print(WAV.PATH_FILES_WAV)
         df = self.spark_session.read.\
             csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= data_structure, sep='\t').\
@@ -78,7 +77,7 @@ class WAV(object):
         except IOError:
             print("\nIndexing file for path \'{}\' not present, creating it...".format(path))
             list_of_fileName = self.createIndexingFile_andGetContent(folder_path=path)
-        print("get_fileNames_test(): ",type(list_of_fileName), len(list_of_fileName), type(list_of_fileName[0]), len(list_of_fileName[0]), list_of_fileName[0])
+
         return list_of_fileName
     
 
@@ -131,5 +130,4 @@ class WAV(object):
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             #os.remove('tmp')
             
-        print("create_file(): ",type(list_of_fileName), len(list_of_fileName), type(list_of_fileName[0]), len(list_of_fileName[0]), list_of_fileName[0])
         return list_of_fileName
