@@ -25,11 +25,13 @@ class WAV(object):
 
     def read_was_as_binary(self,spark_context):
         binary_wave = spark_context.binaryFiles(Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav')
+        # così dovrebbe tornare un rdd (nome file, Wave_read Object)
+        # rdd = self.nomedellavariablecheconterràifilenameWAV.map(lambda file: (file, wav.open(file))) così dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi è giusta)
         return binary_wave
 
     def recording_info(self):
         wav_files = self.get_fileNames_test()
-        print(type(wav_files), len(wav_files), type(wav_files[0]), len(wav_files[0]), wav_files[0])
+        #print(type(wav_files), len(wav_files), type(wav_files[0]), len(wav_files[0]), wav_files[0])
 
         wav_DF = self.spark_session.createDataFrame(wav_files, StructType([StructField("FileName", StringType(), False)]))
 
@@ -41,7 +43,7 @@ class WAV(object):
         wav_DF = wav_DF.withColumn("Recording_Equipement", split_col.getItem(4))
 
         wav_DF.printSchema()
-        #wav_DF.show(2, False)
+        wav_DF.show(2, False)
 
     def recording_annotation(self):
         idx_fileName = len(WAV.PATH_FILES_WAV.split(Path.path_separator))
@@ -72,12 +74,11 @@ class WAV(object):
             #IF THE FILE ALREDY EXIST
             indexingFiles = self.openIndexingFiles(folder_path=path)
             for line in indexingFiles:
-                list_of_fileName.append([line])
+                list_of_fileName.append([line[:-1]])
         except IOError:
             print("\nIndexing file for path \'{}\' not present, creating it...".format(path))
             list_of_fileName = self.createIndexingFile_andGetContent(folder_path=path)
-
-        print(type(list_of_fileName), len(list_of_fileName), type(list_of_fileName[0]), len(list_of_fileName[0]), list_of_fileName[0])
+        print("get_fileNames_test(): ",type(list_of_fileName), len(list_of_fileName), type(list_of_fileName[0]), len(list_of_fileName[0]), list_of_fileName[0])
         return list_of_fileName
     
 
@@ -129,8 +130,6 @@ class WAV(object):
             args = "hdfs dfs -put tmp "+folder_path+"index_fileName"
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             #os.remove('tmp')
-        print(type(list_of_fileName), len(list_of_fileName), type(list_of_fileName[0]), len(list_of_fileName[0]), list_of_fileName[0])
+            
+        print("create_file(): ",type(list_of_fileName), len(list_of_fileName), type(list_of_fileName[0]), len(list_of_fileName[0]), list_of_fileName[0])
         return list_of_fileName
-
-        
-
