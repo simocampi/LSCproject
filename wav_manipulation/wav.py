@@ -7,6 +7,7 @@ from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,Flo
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import split, substring, col, regexp_replace, reverse
 from pyspark.sql.functions import lit
+import wave
 from pyspark.sql.functions import *
 from time import time
 import pandas as pd
@@ -18,14 +19,18 @@ class WAV(object):
     
     PATH_FILES_WAV = Path.get_wav_file_path()
     
-    def __init__(self,spark_session):
+    def __init__(self,spark_session,spark_context):
         self.spark_session = spark_session
+        self.spark_context = spark_context
+
+    def read_was_as_binary(self,spark_context):
+        binary_wave = spark_context.binaryFiles(Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav')
+        # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
+        # rdd = self.nomedellavariablecheconterraifilenameWAV.map(lambda file: (file, wav.open(file))) cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
+        return binary_wave
 
     def recording_info(self):
-        
-        filenames = pd.read_csv('FILENAMES.csv',header=0, index_col=False)
-        #wav_files = [[f[:-4]] for f in listdir(WAV.PATH_FILES_WAV) if (isfile(join(WAV.PATH_FILES_WAV, f)) and f.endswith('.wav'))] 
-        wav_files = [[f[:-4]] for f in filenames.values[:,1] ] 
+        wav_files = self.get_fileNames_test()
 
         wav_DF = self.spark_session.createDataFrame(wav_files, StructType([StructField("FileName", StringType(), False)]))
 
@@ -37,7 +42,7 @@ class WAV(object):
         wav_DF = wav_DF.withColumn("Recording_Equipement", split_col.getItem(4))
 
         wav_DF.printSchema()
-        wav_DF.show(5)
+        wav_DF.show(2, False)
 
     def recording_annotation(self):
         idx_fileName = len(WAV.PATH_FILES_WAV.split(Path.path_separator))
@@ -48,106 +53,81 @@ class WAV(object):
                             StructField("Crackels", IntegerType(), True),
                             StructField("Wheezes", IntegerType(), True)]
 
-        data_structure = StructType(original_schema)
-
+        
+        print(WAV.PATH_FILES_WAV)
         df = self.spark_session.read.\
             csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= data_structure, sep='\t').\
             withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName) ).\
             withColumn("duration", col("End") - col("Start"))
 
-        
-
-        df.show(5, False)
         df.printSchema()
-
-
-
-
-
-
+        df.show(2, False)
 
 
     
     def get_fileNames_test(self):
-        print("***************************************************************************************************************\n\n")
         path = Path.get_wav_file_path()
         list_of_fileName = []
+
         try:
+            #IF THE FILE ALREDY EXIST
             indexingFiles = self.openIndexingFiles(folder_path=path)
             for line in indexingFiles:
-                list_of_fileName.append(line)
+                list_of_fileName.append([line[:-1]])
         except IOError:
             print("\nIndexing file for path \'{}\' not present, creating it...".format(path))
             list_of_fileName = self.createIndexingFile_andGetContent(folder_path=path)
-            i=0
-        finally:
-            print("ciao")
-            #indexingFiles.close()
-        
-        print("\n#################################################################")
-        print(len(list_of_fileName), " - 906")
-        print("\n#################################################################")
+
+        return list_of_fileName
     
 
     def openIndexingFiles(self, folder_path):
         if Path.RunningOnLocal:
             #WINDOWS LOCAL MACHINE
-            f = open(folder_path+'index_fileName.txt', 'r')
+            f = open(folder_path+'index_fileName', 'r')
             return f
         else:
             #UNIGE CLUSTER SERVER
-            args = "hdfs dfs -cat "+folder_path+"index_fileName.txt"
-            print("args opening: ",args)#################################################################### DEBUG PRINT
+            args = "hdfs dfs -cat "+folder_path+"index_fileName"
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             stdout, stderr = proc.communicate()
 
             if proc.returncode != 0:
-                print("Return code: ", proc.returncode)#################################################################### DEBUG PRINT
-                print("STDERR: ",stderr)#################################################################### DEBUG PRINT
                 raise IOError('Indexing file not found.')
-            return stdout#proc.communicate()[0].decode('utf-8')
+            return stdout.split()
     
 
     def createIndexingFile_andGetContent(self, folder_path):
         list_of_fileName = []
         if Path.RunningOnLocal:
             #WINDOWS LOCAL MACHINE
-            list_of_fileName = [f[:-4] for f in listdir(folder_path) if (isfile(join(folder_path, f)) and f.endswith('.txt'))]
+            list_of_fileName = [[f[:-4]] for f in listdir(folder_path) if (isfile(join(folder_path, f)) and f.endswith('.txt'))]
 
-            indexingFiles = open(folder_path+'index_fileName.txt','w')
+            indexingFiles = open(folder_path+'index_fileName','w')
             for fileName in list_of_fileName:
-                indexingFiles.write(fileName+"\n")
+                indexingFiles.write(fileName[0])
+                indexingFiles.write("\n")
             indexingFiles.close()
+            
         else:
             #UNIGE CLUSTER SERVER
             args = "hdfs dfs -ls "+folder_path+"*.txt | awk '{print $8}'"
-            print("args creating 1: ",args)#################################################################### DEBUG PRINT
             proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
             s_output, s_err = proc.communicate()
             tmp_list = s_output.split()
-            print(Path.path_separator)
-            print(Path.RunningOnLocal)
             for line in tmp_list:
-                print(line)
                 fileName = line.split("/")[-1]
-                list_of_fileName.append(fileName[:-4])
-            
-            print("\n\n")
-            print(list_of_fileName[0])
+                list_of_fileName.append([fileName[:-4]])
 
             #save file in hadoop file system
             tmpFile = open('tmp','w')
-            for fileName in tmp_list:
-                tmpFile.write(fileName+"\n")
+            for fileName in list_of_fileName:
+                tmpFile.write(fileName[0]+"\n")
             tmpFile.close()
 
-            args = "hdfs dfs -put tmp "+folder_path+"index_fileName.txt"
-            print("args creating 2: ",args)#################################################################### DEBUG PRINT
-            #proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            args = "hdfs dfs -put tmp "+folder_path+"index_fileName"
+            proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             #os.remove('tmp')
-
+            
         return list_of_fileName
-
-        
-

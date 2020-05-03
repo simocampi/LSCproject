@@ -1,5 +1,5 @@
 #!/bin/bash
-
+find . -name "*.pyc" -type f -delete
 ssh user24@192.168.20.157 "cd LSCproject/; rm -rf DataManipulation/ *.py* Utils/ wav_manipulation/"
 echo "Removed old files."
 echo

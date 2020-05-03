@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from pyspark import SparkContext, SparkConf
 from pyspark.sql.functions import *
 from pyspark.sql.window import Window
 from pyspark.sql.functions import format_number 
@@ -10,10 +11,12 @@ from Utils.BMI import replace_bmi_child
 from wav_manipulation.wav import *
 import pandas as pd
 
+conf = SparkConf().setAppName('LSC_Project')
+spark_context = SparkContext(conf=conf)
 
-spark_session = SparkSession.builder \
-                .appName('LSC_PROJECT') \
+spark_session = SparkSession(sparkContext=spark_context).builder \
                 .getOrCreate()
+
 
 '''
 # ----the dataframe containing the informations about patients is created
@@ -38,7 +41,11 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 '''
 
 
-wav = WAV(spark_session)
-wav.get_fileNames_test()
-#wav.recording_info()
-#wav.recording_annotation()
+wav = WAV(spark_session, spark_context)
+
+binary_wave = wav.read_was_as_binary(spark_context)
+#print(binary_wave.toDF().printSchema())
+#print(binary_wave[1])
+
+wav.recording_info()
+wav.recording_annotation()
