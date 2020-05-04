@@ -23,10 +23,11 @@ class WAV(object):
         self.wav_fileName = self.get_fileNames_test()         #PER DAPU
 
     def read_was_as_binary(self,spark_context):
-        list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+filename[0]+'.wav' for filename in self.wav_fileName])
-        #binary_wave = spark_context.binaryFiles(Path.get_wav_file_path()+'222_1b1_Pr_sc_Meditron.wav')
+        #list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+filename[0]+'.wav' for filename in self.wav_fileName])
+
+        binary_wave_list = spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
         # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
-        binary_wave = list_filename.map(lambda file: (file, wave.open(file, mode='rb'))) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
+        binary_wave = binary_wave_list.map(lambda file: (file[0], wave.open(file[1], mode='rb'))) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
         return binary_wave
 
     def recording_info(self):
