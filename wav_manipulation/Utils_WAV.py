@@ -1,9 +1,19 @@
 import wave
 import math
 import scipy.io.wavfile as wf
+from DataManipulation.Utils.Path import Path
+import pickle
+from pydub import AudioSegment
+
 
 class Wav_Preprocessing(object):
 
+    def __init__(self, spark_context):
+        self.spark_context = spark_context
+
+
+    #-----------------------KAGGLE FUNC-----------------------------------------------------------------
+    
     def read_wav(self, path_wav):
         fs , data = wf.read(path_wav)
 
@@ -66,7 +76,7 @@ class Wav_Preprocessing(object):
         end_ind = min(int(end * sample_rate), max_ind)
         return raw_data[start_ind: end_ind]
 
-    # da aggiungere altre funzionì...forse da utilizzare pure le annotation.txtxt xddd
+    # da aggiungere altre funzioni...forse da utilizzare pure le annotation.txtxt xddd
 
     # return the Dataframe(rdd) of the wav file ready to be used in the pipeline
     def processing(self):

@@ -9,6 +9,8 @@ from pyspark.sql.functions import split, substring, col, regexp_replace, reverse
 import wave
 from time import time
 import pandas as pd
+import pickle
+from pydub import AudioSegment
 
 import subprocess
 
@@ -20,15 +22,15 @@ class WAV(object):
     def __init__(self,spark_session,spark_context):
         self.spark_session = spark_session
         self.spark_context = spark_context
-        self.wav_fileName = self.get_fileNames_test()         #PER DAPU
+        self.wav_fileName = self.get_fileNames_test() 
+    
+    def openWav(self, path):
+        return (path, wave.open(path, mode='rb'))
 
-    def read_was_as_binary(self,spark_context):
-        #list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+filename[0]+'.wav' for filename in self.wav_fileName])
-
-        binary_wave_list = spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
-        # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
-        binary_wave = binary_wave_list.map(lambda file: (file[0], wave.open(file[1], mode='rb'))) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
-        return binary_wave
+    def rddWAV(self, spark_context):
+        filenames = [Path.get_wav_file_path()+filename[0]+'.wav' for filename in self.wav_fileName]
+        #print(filenames)
+        return spark_context.parallelize(filenames,len(filenames)).foreach(self.openWav)
 
     def recording_info(self):
         wav_files = self.get_fileNames_test()
@@ -63,8 +65,8 @@ class WAV(object):
 
         df.printSchema()
         df.show(2, False)
-
-
+    
+   
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()
         list_of_fileName = []
