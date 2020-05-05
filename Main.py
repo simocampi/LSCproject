@@ -7,6 +7,7 @@ from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from pydub import AudioSegment
 import pickle
+import sparkpickle
 
 import sys,os
 #from importlib import reload
@@ -15,9 +16,10 @@ from wav_manipulation.wav import *
 import pandas as pd
 from wav_manipulation.Utils_WAV import Wav_Preprocessing
 import wave
-import audiosegment
+#import audiosegment
 import zlib
-
+from io import BytesIO
+import numpy as np
 
 
 conf = SparkConf().setAppName('LSC_Project')
@@ -57,7 +59,7 @@ def read_was_as_binary(sc):
 
         bytesRdd= sc.binaryFiles(Path.get_wav_file_path()+'*.wav')
         # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
-        binary_wave = bytesRdd.map(lambda file: (file[0], file[1])) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
+        binary_wave = bytesRdd #.map(lambda file: (file[0], file[1])) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
         return binary_wave
      
 def deserialize(bstr):
@@ -76,8 +78,8 @@ wav = WAV(spark_session, spark_context)
 
 wav_Preprocessing = Wav_Preprocessing(spark_context)
 binary_wave_rdd = read_was_as_binary(spark_context)
-#
-binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], deserialize(x[1])))
+
+binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], deserialize(np.array(x[1]))))
 
 frame_rate = binary_wave_rdd.map(lambda x : x[1].frame_rate())
 
@@ -102,7 +104,12 @@ print(frame_rate.collect())
 
 
 #print(Path.get_wav_file_path() +"225_1b1_Pl_sc_Meditron.wav")
-#stecosandro=spark_session.read.format("binaryFile").load(Path.get_wav_file_path() +"225_1b1_Pl_sc_Meditron.wav")
+#stecosandro= spark_session.read.format("binaryFile").load(Path.get_wav_file_path() +"*.wav")
+#stecosandro = stecosandro.map(lambda x : (x[0], deserialize(x[1])))
+#frame_rate = stecosandro.map(lambda x : x[1].frame_rate())
+
+#print(frame_rate.collect())
+
 
 #tecosandro.show()
 
@@ -120,5 +127,5 @@ print(frame_rate.collect())
 
 
 
-wav.recording_info()
-wav.recording_annotation()
+#wav.recording_info()
+#wav.recording_annotation()
