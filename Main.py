@@ -55,11 +55,7 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 
 
 def read_was_as_binary(sc):
-        #list_filename = self.spark_context.parallelize([Path.get_wav_file_path()+filename[0]+'.wav' for filename in self.wav_fileName])
-
         bytesRdd= sc.binaryFiles(Path.get_wav_file_path()+'*.wav')
-        # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
-        #.map(lambda file: (file[0], file[1])) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
         return bytesRdd
      
 def deserialize(bstr):
@@ -69,21 +65,26 @@ def deserialize(bstr):
     :param bstr: The bytestring serialized via an audiosegment's serialize() method.
     :returns: An AudioSegment object deserialized from `bstr`.
      """
-    d = pickle.loads(bstr)
+    d = pickle.loads(bytearray(bstr), encoding = 'byte')
     seg = pickle.loads(d['seg'])
     return AudioSegment(seg, d['name'])
-
 
 wav = WAV(spark_session, spark_context)
 
 wav_Preprocessing = Wav_Preprocessing(spark_context)
 binary_wave_rdd = read_was_as_binary(spark_context)
 
-binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], deserialize(np.array(x[1]))))
+binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], wave.open(io.BytesIO(x[1]), mode='rb')))
 
-frame_rate = binary_wave_rdd.map(lambda x : x[1].frame_rate())
+frame_rate = binary_wave_rdd.map(lambda x : x[1].getframerate())
 
 print(frame_rate.collect())
+
+
+
+
+
+
 
 
 #def decompress(val):
