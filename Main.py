@@ -59,8 +59,8 @@ def read_was_as_binary(sc):
 
         bytesRdd= sc.binaryFiles(Path.get_wav_file_path()+'*.wav')
         # cosi' dovrebbe tornare un rdd (nome file, Wave_read Object)
-        binary_wave = bytesRdd #.map(lambda file: (file[0], file[1])) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
-        return binary_wave
+        #.map(lambda file: (file[0], file[1])) # cosi' dobbiamo sperare che funzioni altrimenti non potremo usare le librerie di python e rip lo abbiamo nel culo forte (non ricordo se la sintassi e' giusta)
+        return bytesRdd
      
 def deserialize(bstr):
     """
