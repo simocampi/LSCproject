@@ -1,17 +1,90 @@
 import wave
 import math
 import scipy.io.wavfile as wf
+from io import BytesIO
 from DataManipulation.Utils.Path import Path
-import pickle
-from pydub import AudioSegment
+
+#Will resample all files to the target sample rate and produce a 32bit float array
+def read_wav_file(rdd_wav, target_rate):
+    (sample_rate, data) = extract2FloatArr(wav,str_filename)
+    
+    if (sample_rate != target_rate):
+        ( _ , data) = resample(sample_rate, data, target_rate)
+        
+    wav.close()
+    return (target_rate, data.astype(np.float32))
+
+def resample(current_rate, data, target_rate):
+    x_original = np.linspace(0,100,len(data))
+    x_resampled = np.linspace(0,100, int(len(data) * (target_rate / current_rate)))
+    resampled = np.interp(x_resampled, x_original, data)
+    return (target_rate, resampled.astype(np.float32))
+
+def extract2FloatArr(lp_wave, str_filename):
+    (bps, channels) = bitrate_channels(lp_wave)
+    
+    if bps in [1,2,4]:
+        (rate, data) = wf.read(str_filename)
+        divisor_dict = {1:255, 2:32768}
+        if bps in [1,2]:
+            divisor = divisor_dict[bps]
+            data = np.divide(data, float(divisor)) #clamp to [0.0,1.0]        
+        return (rate, data)
+    
+    elif bps == 3: 
+        #24bpp wave
+        return read24bitwave(lp_wave)
+    
+    else:
+        raise Exception('Unrecognized wave format: {} bytes per sample'.format(bps))
+
+#Note: This function truncates the 24 bit samples to 16 bits of precision
+#Reads a wave object returned by the wave.read() method
+#Returns the sample rate, as well as the audio in the form of a 32 bit float numpy array
+#(sample_rate:float, audio_data: float[])
+def read24bitwave(lp_wave):
+    nFrames = lp_wave.getnframes()
+    buf = lp_wave.readframes(nFrames)
+    reshaped = np.frombuffer(buf, np.int8).reshape(nFrames,-1)
+    short_output = np.empty((nFrames, 2), dtype = np.int8)
+    short_output[:,:] = reshaped[:, -2:]
+    short_output = short_output.view(np.int16)
+    return (lp_wave.getframerate(), np.divide(short_output, 32768).reshape(-1))  #return numpy array to save memory via array slicing
+
+#sample width : the number of bytes required to represent the value (se ho capito bene)
+def bitrate_channels(lp_wave):
+    bps = (lp_wave.getsampwidth() / lp_wave.getnchannels()) #bytes per sample..non credo di aver capito...un sample contiene l'informazione dei due canali?
+    return (bps, lp_wave.getnchannels())
 
 
-class Wav_Preprocessing(object):
-
-    def __init__(self, spark_context):
-        self.spark_context = spark_context
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
     #-----------------------KAGGLE FUNC-----------------------------------------------------------------
     
     def read_wav(self, path_wav):
@@ -83,3 +156,4 @@ class Wav_Preprocessing(object):
 
         #Dataframe: each row represents a piece of a wav file (spectogram? boh? da vedere lolol)
         pass
+'''

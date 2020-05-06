@@ -10,7 +10,6 @@ import wave
 from time import time
 import pandas as pd
 import pickle
-from pydub import AudioSegment
 
 import subprocess
 
@@ -23,14 +22,18 @@ class WAV(object):
         self.spark_session = spark_session
         self.spark_context = spark_context
         self.wav_fileName = self.get_fileNames_test() 
-    
-    def openWav(self, path):
-        return (path, wave.open(path, mode='rb'))
 
-    def rddWAV(self, spark_context):
-        filenames = [Path.get_wav_file_path()+filename[0]+'.wav' for filename in self.wav_fileName]
-        #print(filenames)
-        return spark_context.parallelize(filenames,len(filenames)).foreach(self.openWav)
+        # parameters in order to have an equivalent representations for each Wav file
+        self.target_sample_rate = 22000 
+        self.sample_length_seconds = 5
+
+    # return an rdd with WAVE objects and corresponding path
+    def binary_to_wave_rdd(spark_context):
+        binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
+        # to be modified
+        binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], wave.open(BytesIO(x[1]), mode='rb')))
+        # + extract2FloatArr + resample
+        return binary_wave_rdd
 
     def recording_info(self):
         wav_files = self.get_fileNames_test()

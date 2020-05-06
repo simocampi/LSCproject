@@ -5,20 +5,16 @@ from pyspark.sql.window import Window
 from pyspark.sql.functions import format_number 
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
-from pydub import AudioSegment
 import pickle
-import sparkpickle
 
 import sys,os
 #from importlib import reload
 from Utils.BMI import replace_bmi_child
 from wav_manipulation.wav import *
 import pandas as pd
-from wav_manipulation.Utils_WAV import Wav_Preprocessing
+from wav_manipulation.Utils_WAV import *
 import wave
-#import audiosegment
-import zlib
-from io import BytesIO
+
 import numpy as np
 
 
@@ -54,77 +50,14 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 
 
 
-def read_was_as_binary(sc):
-        bytesRdd= sc.binaryFiles(Path.get_wav_file_path()+'*.wav')
-        return bytesRdd
      
-def deserialize(bstr):
-    """
-     Attempts to deserialize a bytestring into an audiosegment.
-
-    :param bstr: The bytestring serialized via an audiosegment's serialize() method.
-    :returns: An AudioSegment object deserialized from `bstr`.
-     """
-    d = pickle.loads(bytearray(bstr), encoding = 'byte')
-    seg = pickle.loads(d['seg'])
-    return AudioSegment(seg, d['name'])
-
 wav = WAV(spark_session, spark_context)
 
-wav_Preprocessing = Wav_Preprocessing(spark_context)
-binary_wave_rdd = read_was_as_binary(spark_context)
-
-binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], wave.open(io.BytesIO(x[1]), mode='rb')))
+binary_wave_rdd = binary_to_wave_rdd(spark_context)
 
 frame_rate = binary_wave_rdd.map(lambda x : x[1].getframerate())
 
-print(frame_rate.collect())
-
-
-
-
-
-
-
-
-#def decompress(val):
-#    try:
-#        s = zlib.decompress(val, 16 + zlib.MAX_WBITS)
-#    except:
-#        return val
-#    return s
-
-#binary_files = binary_wave_rdd.map(lambda x : x[1])
-
-#print(type(binary_files.mapValues(wav.deserialize).take(1)))
-
-
-
-
-
-
-
-#print(Path.get_wav_file_path() +"225_1b1_Pl_sc_Meditron.wav")
-#stecosandro= spark_session.read.format("binaryFile").load(Path.get_wav_file_path() +"*.wav")
-#stecosandro = stecosandro.map(lambda x : (x[0], deserialize(x[1])))
-#frame_rate = stecosandro.map(lambda x : x[1].frame_rate())
-
-#print(frame_rate.collect())
-
-
-#tecosandro.show()
-
-#print(stecosandro.collect())
-#binary_wave_rdd.toDF().show(5)
-#gigi = WAV()
-#rdd = wav.rddWAV(spark_context)
-#binary_wave_rdd = wav.read_was_as_binary(spark_context)
-
-
-#spectogram_rdd = binary_wave_rdd.map(lambda x: (x[0] , x[1].spectogram(window_length_s=0.03, overlap=0.5)))
-#print(rdd.collect())
-#spectogram_df = spectogram_rdd.toDF()
-#spectogram_rdd.show()
+print(frame_rate.count())
 
 
 
