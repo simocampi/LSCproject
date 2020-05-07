@@ -1,21 +1,15 @@
 from pyspark.sql import SparkSession
 from pyspark import SparkContext, SparkConf
-from pyspark.sql.functions import *
-from pyspark.sql.window import Window
+
 from pyspark.sql.functions import format_number 
+
+
+from wav_manipulation.wav import *
+from wav_manipulation.Utils_WAV import *
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
-import pickle
-
-import sys,os
-#from importlib import reload
 from Utils.BMI import replace_bmi_child
-from wav_manipulation.wav import *
-import pandas as pd
-from wav_manipulation.Utils_WAV import *
-import wave
 
-import numpy as np
 
 
 conf = SparkConf().setAppName('LSC_Project')
@@ -53,11 +47,11 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
      
 wav = WAV(spark_session, spark_context)
 
-binary_wave_rdd = binary_to_wave_rdd(spark_context)
+binary_wave_rdd = wav.binary_to_wave_rdd()
 
 frame_rate = binary_wave_rdd.map(lambda x : x[1].getframerate())
 
-print(frame_rate.count())
+print('Count Frame rate in rdd: ', frame_rate.count())
 
 
 

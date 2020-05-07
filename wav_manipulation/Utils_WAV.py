@@ -1,5 +1,6 @@
 import wave
 import math
+import numpy as np
 import scipy.io.wavfile as wf
 from io import BytesIO
 from DataManipulation.Utils.Path import Path

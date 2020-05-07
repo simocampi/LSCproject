@@ -1,17 +1,14 @@
 from os import listdir
-import os
-import io
 from os.path import *
-from DataManipulation.Utils.Path import Path
+import io
+import subprocess
+import wave
+
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import split, substring, col, regexp_replace, reverse, lit, input_file_name
-import wave
-from time import time
-import pandas as pd
-import pickle
 
-import subprocess
+from DataManipulation.Utils.Path import Path
 
 
 class WAV(object):
@@ -28,7 +25,7 @@ class WAV(object):
         self.sample_length_seconds = 5
 
     # return an rdd with WAVE objects and corresponding path
-    def binary_to_wave_rdd(self, spark_context):
+    def binary_to_wave_rdd(self):
         binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
         # to be modified
         binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], wave.open(io.BytesIO(x[1]), mode='rb')))
@@ -59,8 +56,6 @@ class WAV(object):
                             StructField("Crackels", IntegerType(), False),
                             StructField("Wheezes", IntegerType(), False)]
 
-        
-        print(WAV.PATH_FILES_WAV)
         df = self.spark_session.read.\
             csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= StructType(original_schema), sep='\t').\
             withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName) ).\
