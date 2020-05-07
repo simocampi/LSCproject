@@ -28,10 +28,10 @@ class WAV(object):
         self.sample_length_seconds = 5
 
     # return an rdd with WAVE objects and corresponding path
-    def binary_to_wave_rdd(spark_context):
+    def binary_to_wave_rdd(self, spark_context):
         binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
         # to be modified
-        binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], wave.open(BytesIO(x[1]), mode='rb')))
+        binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], wave.open(io.BytesIO(x[1]), mode='rb')))
         # + extract2FloatArr + resample
         return binary_wave_rdd
 
