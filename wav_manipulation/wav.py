@@ -1,7 +1,8 @@
 #from os import listdir
 from os.path import *
-import io, subprocess, wave, librosa
-
+import io
+import subprocess
+import librosa
 
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
@@ -22,8 +23,6 @@ class WAV(object):
         # parameters in order to have an equivalent representations for each Wav file
         self.target_sample_rate = 22000 
         self.sample_length_seconds = 6 # 5 o 6 xdlolololol
-
-
 
         # MI AMMAZZ' CAZzO HAAAAAAAA ZIO MEEERDA
         binary_to_librosa_rdd()
