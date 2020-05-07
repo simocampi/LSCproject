@@ -26,11 +26,9 @@ class DemographicInfo(object):
 
         self.spark_session= spark_session
 
-        # tapullata increddibbile START
-        df = pd.read_csv( self.DEMOGRAPHIC_INFO_PATH, sep=',', header=0) 
-        self.dataFrame = spark_session.createDataFrame(df,schema=self.data_structure)
-        # tapullata increddibbile END
- 
+        self.dataFrame = self.spark_session.read \
+            .csv(path=self.DEMOGRAPHIC_INFO_PATH, header=True, schema= self.data_structure, sep=',', nullValue='NA')
+        print('DAPPU MANGIA I GATTI ALLA GRIGLIA CON PATATE ARROSTO E PEPERONI GRIGLIATI E CON LA PELLICCIA SI FA LE SCIARPE: ', self.DEMOGRAPHIC_INFO_PATH)
 
     def get_DataFrame(self):
         return self.dataFrame
