@@ -1,5 +1,4 @@
-import wave
-import math
+import wave, math
 import numpy as np
 import scipy.io.wavfile as wf
 from io import BytesIO

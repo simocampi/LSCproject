@@ -1,8 +1,7 @@
 from os import listdir
 from os.path import *
-import io
-import subprocess
-import wave
+import io, subprocess, wave
+
 
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
@@ -29,7 +28,7 @@ class WAV(object):
         binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
         # to be modified
         binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], wave.open(io.BytesIO(x[1]), mode='rb')))
-        # + extract2FloatArr + resample
+        # + extract2FloatArr + resample... it sgould return (filename, array containing the samples)
         return binary_wave_rdd
 
     def recording_info(self):
