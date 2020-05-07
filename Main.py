@@ -2,7 +2,6 @@ from pyspark.sql import SparkSession
 from pyspark import SparkContext, SparkConf
 
 from pyspark.sql.functions import format_number 
-import librosa
 
 from wav_manipulation.wav import *
 from wav_manipulation.Utils_WAV import *
@@ -43,8 +42,8 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
      
 wav = WAV(spark_session, spark_context)
 
-binary_wave_rdd = wav.binary_to_librosa_rdd()
-
+audio_rdd = wav.get_Rdd()
+print(audio_rdd.collect())
 #frame_rate = binary_wave_rdd.map(lambda x : x[1].getframerate())
 #frame_rate = binary_wave_rdd.map(lambda x : x[1][1])
 
@@ -52,8 +51,8 @@ binary_wave_rdd = wav.binary_to_librosa_rdd()
 
 
 #spect = binary_wave_rdd.map(lambda x: x[1])
-spect = binary_wave_rdd.map( lambda x: (WAV.audio_to_melspectogram_rdd(x[1][0], x[1][1])))
-print(spect.collect())
+#spect = binary_wave_rdd.map( lambda x: (WAV.audio_to_melspectogram_rdd(x[1][0], x[1][1])))
+#print(spect.collect())
 
 
 #librosa.display.specshow()#ciaoooooooooooo, come va?? io ho un problema, mi dice 'DataManipulation.PatientDiagnosis' has no attribute 'get_DataFrame'

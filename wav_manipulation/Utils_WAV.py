@@ -1,11 +1,11 @@
 import wave, math
 import numpy as np
-import scipy.io.wavfile as wf
+#import scipy.io.wavfile as wf
 from io import BytesIO
 from DataManipulation.Utils.Path import Path
 
 
-def slice_wav_with_annotation(audio, annotations, max_len):
+def slice_with_annotation(audio, annotations, max_len):
     
     # ha la madre puttana
     start, end, duration = annotations['Start'], annotations['End'], annotations['Duration']
