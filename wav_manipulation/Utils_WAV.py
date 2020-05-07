@@ -4,61 +4,42 @@ import scipy.io.wavfile as wf
 from io import BytesIO
 from DataManipulation.Utils.Path import Path
 
-#Will resample all files to the target sample rate and produce a 32bit float array
-def read_wav_file(rdd_wav, target_rate):
-    (sample_rate, data) = extract2FloatArr(wav,str_filename)
+
+def slice_wav_with_annotation(audio, annotations, max_len):
     
-    if (sample_rate != target_rate):
-        ( _ , data) = resample(sample_rate, data, target_rate)
+    # ha la madre puttana
+    start, end, duration = annotations['Start'], annotations['End'], annotations['Duration']
+
+    if max_len < end - start:
+        end = start + max_len
+
+    splitted_data = slice_data(start, end, audio[1][1],  audio[1][0])
         
-    wav.close()
-    return (target_rate, data.astype(np.float32))
-
-def resample(current_rate, data, target_rate):
-    x_original = np.linspace(0,100,len(data))
-    x_resampled = np.linspace(0,100, int(len(data) * (target_rate / current_rate)))
-    resampled = np.interp(x_resampled, x_original, data)
-    return (target_rate, resampled.astype(np.float32))
-
-def extract2FloatArr(lp_wave, str_filename):
-    (bps, channels) = bitrate_channels(lp_wave)
+    return (audio, splitted_data, annotations["Crackels"], annotations["Wheezes"])
     
-    if bps in [1,2,4]:
-        (rate, data) = wf.read(str_filename)
-        divisor_dict = {1:255, 2:32768}
-        if bps in [1,2]:
-            divisor = divisor_dict[bps]
-            data = np.divide(data, float(divisor)) #clamp to [0.0,1.0]        
-        return (rate, data)
-    
-    elif bps == 3: 
-        #24bpp wave
-        return read24bitwave(lp_wave)
-    
-    else:
-        raise Exception('Unrecognized wave format: {} bytes per sample'.format(bps))
 
-#Note: This function truncates the 24 bit samples to 16 bits of precision
-#Reads a wave object returned by the wave.read() method
-#Returns the sample rate, as well as the audio in the form of a 32 bit float numpy array
-#(sample_rate:float, audio_data: float[])
-def read24bitwave(lp_wave):
-    nFrames = lp_wave.getnframes()
-    buf = lp_wave.readframes(nFrames)
-    reshaped = np.frombuffer(buf, np.int8).reshape(nFrames,-1)
-    short_output = np.empty((nFrames, 2), dtype = np.int8)
-    short_output[:,:] = reshaped[:, -2:]
-    short_output = short_output.view(np.int16)
-    return (lp_wave.getframerate(), np.divide(short_output, 32768).reshape(-1))  #return numpy array to save memory via array slicing
-
-#sample width : the number of bytes required to represent the value (se ho capito bene)
-def bitrate_channels(lp_wave):
-    bps = (lp_wave.getsampwidth() / lp_wave.getnchannels()) #bytes per sample..non credo di aver capito...un sample contiene l'informazione dei due canali?
-    return (bps, lp_wave.getnchannels())
+def slice_data(start, end, raw_data,  sample_rate):
+    max_ind = len(raw_data) 
+    start_ind = min(int(start * sample_rate), max_ind)
+    end_ind = min(int(end * sample_rate), max_ind)
+    return raw_data[start_ind: end_ind]
 
 
 
+#def compute_len(samp_rate=22050, time=6, acquisition_mode=0):
+'''Computes the supposed length of sliced data
+        samp_size = sample size from the data
+        samp_rate = sampling rate. by default since we're working on 24-bit files, we'll use 96kHz
+        time = length of time for the audio file. by default we'll use the max we have which is 5.48
+        acquisition_mode = either mono or stereo. 0 for mono, 1 for stereo
+'''
+    #comp_len = 0
+    #if acquisition_mode == 1: #ac mode is single channel which means it's 'mono'
+        #comp_len = samp_rate * time
+    #else: #stereo
+        #comp_len = (samp_rate * time) * 2
 
+    #return comp_len
 
 
 

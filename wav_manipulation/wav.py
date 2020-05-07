@@ -1,12 +1,12 @@
-from os import listdir
+#from os import listdir
 from os.path import *
-import io, subprocess, wave
+import io, subprocess, wave, librosa
 
 
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import split, substring, col, regexp_replace, reverse, lit, input_file_name
-
+from wav_manipulation.Utils_WAV import *
 from DataManipulation.Utils.Path import Path
 
 
@@ -23,13 +23,34 @@ class WAV(object):
         self.target_sample_rate = 22000 
         self.sample_length_seconds = 5
 
+    def get_DataFrame(self):
+        return self.binary_wave_rdd.toDF()
+        
+        #dapu modifica cose a caso
+    #ciao ho un problema, mi dice 'DataManipulation.PatientDiagnosis' has no attribute 'get_DataFrame'... che faccio?
     # return an rdd with WAVE objects and corresponding path
-    def binary_to_wave_rdd(self):
+    def binary_to_librosa_rdd(self):
         binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
         # to be modified
-        binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], wave.open(io.BytesIO(x[1]), mode='rb')))
-        # + extract2FloatArr + resample... it sgould return (filename, array containing the samples)
+        binary_wave_rdd = binary_wave_rdd.map(lambda x : (x[0], librosa.load(io.BytesIO(x[1]))))
+        # (filename, (array containing the samples, sample rate))
+        #binary_wave_rdd = binary_wave_rdd.map(lambda x: slice_wav_with_annotation.(x, ))
         return binary_wave_rdd
+
+   #def split_and_pad()
+    
+    # y_s : splitted signal
+    # sr  : sample_rate splitted
+    def audio_to_melspectogram_rdd(self, y_s, sr_s):
+
+        mel_spec = librosa.feature.melspectrogram(y=y_s, sr=sr_s)
+        
+    
+        
+
+
+
+    
 
     def recording_info(self):
         wav_files = self.get_fileNames_test()
@@ -49,7 +70,6 @@ class WAV(object):
     def recording_annotation(self):
         idx_fileName = len(WAV.PATH_FILES_WAV.split(Path.path_separator))
 
-
         original_schema = [ StructField("Start", FloatType(), False),
                             StructField("End",  FloatType(), False),
                             StructField("Crackels", IntegerType(), False),
@@ -59,10 +79,483 @@ class WAV(object):
             csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= StructType(original_schema), sep='\t').\
             withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName) ).\
             withColumn("Duration", col("End") - col("Start"))
+        return df
+        #df.printSchema()
+        #df.show(2, False)
 
-        df.printSchema()
-        df.show(2, False)
-    
+   #dapu modifica cose
+   #dapu modifica cose#dapu modifica cose#dapu modifica cose#dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose#dapu modifica cose#dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose#dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose#dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
+   #dapu modifica cose
    
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()
