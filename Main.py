@@ -42,10 +42,10 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 
 
      
-#wav = WAV(spark_session, spark_context)
+wav = WAV(spark_session, spark_context)
 
-#audio_rdd = wav.get_Rdd()
-#print( audio_rdd.count() )
+audio_rdd = wav.get_Rdd()
+print( audio_rdd.count() )
 
 #wav_b = wav.binary_to_librosa_rdd()
 
