@@ -7,7 +7,6 @@ from DataManipulation.Utils.Path import Path
 
 def slice_with_annotation(audio, annotations, max_len):
     
-    # ha la madre puttana
     start, end, duration = annotations['Start'], annotations['End'], annotations['Duration']
 
     if max_len < end - start:
@@ -15,7 +14,7 @@ def slice_with_annotation(audio, annotations, max_len):
 
     splitted_data = slice_data(start, end, audio[1][1],  audio[1][0])
         
-    return (audio, splitted_data, annotations["Crackels"], annotations["Wheezes"])
+    return (audio[0], splitted_data, annotations["Crackels"], annotations["Wheezes"])
     
 
 def slice_data(start, end, raw_data,  sample_rate):

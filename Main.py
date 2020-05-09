@@ -9,6 +9,8 @@ from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
 
+
+
 conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
 
@@ -43,7 +45,10 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 wav = WAV(spark_session, spark_context)
 
 audio_rdd = wav.get_Rdd()
-print(audio_rdd.collect())
+print( audio_rdd.count() )
+
+#wav_b = wav.binary_to_librosa_rdd()
+
 #frame_rate = binary_wave_rdd.map(lambda x : x[1].getframerate())
 #frame_rate = binary_wave_rdd.map(lambda x : x[1][1])
 
@@ -53,13 +58,7 @@ print(audio_rdd.collect())
 #spect = binary_wave_rdd.map(lambda x: x[1])
 #spect = binary_wave_rdd.map( lambda x: (WAV.audio_to_melspectogram_rdd(x[1][0], x[1][1])))
 #print(spect.collect())
-
-
-#librosa.display.specshow()#ciaoooooooooooo, come va?? io ho un problema, mi dice 'DataManipulation.PatientDiagnosis' has no attribute 'get_DataFrame'
-
-#rint('DAPPU MANGIA I GATTI: ', y,'   ', sr)
 #wav.wav_to_melspectogram_rdd(y,sr)
 
 wav.recording_info()
-recording_annotation = wav.recording_annotation()
-recording_annotation.show(5)
+wav.recording_annotation()

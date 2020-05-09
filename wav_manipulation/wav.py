@@ -11,6 +11,7 @@ from wav_manipulation.Utils_WAV import *
 from DataManipulation.Utils.Path import Path
 
 
+
 class WAV(object):
     
     PATH_FILES_WAV = Path.get_wav_file_path()
@@ -24,9 +25,8 @@ class WAV(object):
         self.target_sample_rate = 22000 
         self.sample_length_seconds = 6 # 5 o 6 xdlolololol
 
-        # MI AMMAZZ' CAZzO HAAAAAAAA ZIO MEEERDA
-        binary_to_librosa_rdd()
-        split_and_pad()
+        self.binary_to_librosa_rdd()
+        #self.split_and_pad()
         # audio_to_melspectogram_rdd
 
     def get_DataFrame(self):
@@ -41,7 +41,8 @@ class WAV(object):
         self.rdd = binary_wave_rdd.map(lambda x : (x[0], librosa.load(io.BytesIO(x[1]))))
 
     def split_and_pad(self):
-        data = self.rdd.map(lambda audio: slice_with_annotation(audio[1], self.attonationDataframe.where("Filename=={}".format(audio[0])), self.sample_length_seconds))
+        annotationDataframe = self.recording_annotation()
+        self.rdd2 = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0])), self.sample_length_seconds))
     
     # y_s : splitted signal
     # sr  : sample_rate splitted
@@ -62,6 +63,7 @@ class WAV(object):
         wav_DF = wav_DF.withColumn("Acquisition_Mode", split_col.getItem(3))
         wav_DF = wav_DF.withColumn("Recording_Equipement", split_col.getItem(4))
 
+        self.recordingInfo = wav_DF # the class variable the Dataframe containing the recording info
         #wav_DF.printSchema()
         #wav_DF.show(2, False)
 
@@ -73,13 +75,13 @@ class WAV(object):
                             StructField("Crackels", IntegerType(), False),
                             StructField("Wheezes", IntegerType(), False)]
 
-        df = self.spark_session.read.\
+        self.annotationDataframe = self.spark_session.read.\
             csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= StructType(original_schema), sep='\t').\
             withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName) ).\
             withColumn("Duration", col("End") - col("Start"))
 
-        self.attonationDataframe = df
-
+        return self.annotationDataframe
+        # the class variable the Dataframe containing the recording annotation
         #df.printSchema()
         #df.show(2, False)
    
