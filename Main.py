@@ -8,7 +8,7 @@ from wav_manipulation.Utils_WAV import *
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
-
+import os
 
 
 conf = SparkConf().setAppName('LSC_Project')
@@ -42,10 +42,10 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 
 
      
-wav = WAV(spark_session, spark_context)
+#wav = WAV(spark_session, spark_context)
 
-audio_rdd = wav.get_Rdd()
-print( audio_rdd.count() )
+#audio_rdd = wav.get_Rdd()
+#print( audio_rdd.count() )
 
 #wav_b = wav.binary_to_librosa_rdd()
 
@@ -60,5 +60,17 @@ print( audio_rdd.count() )
 #print(spect.collect())
 #wav.wav_to_melspectogram_rdd(y,sr)
 
-wav.recording_info()
-wav.recording_annotation()
+#wav.recording_info()#
+#wav.recording_annotation()
+
+
+#os.rename(r'C:\\Users\\jacop\\OneDrive\\Documents\\GitHub\\LSCproject\\Database\\audio_and_txt_files\\* 1.wav',r'C:\\Users\\jacop\\OneDrive\\Documents\\GitHub\\LSCproject\\Database\\audio_and_txt_files\\*_16.wav')
+
+
+#rename all the files
+#for filename in os.listdir(Path.get_wav_file_path()):#
+#    
+#    dst = filename[:-6] + "_16.wav"
+#    
+#    os.rename(Path.get_wav_file_path()+filename, Path.get_wav_file_path()+dst)
+

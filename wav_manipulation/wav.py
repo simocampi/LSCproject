@@ -2,7 +2,8 @@
 from os.path import *
 import io
 import subprocess
-import librosa
+#import librosa
+from scipy.io import wavfile
 
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
@@ -26,7 +27,7 @@ class WAV(object):
         self.sample_length_seconds = 6 # 5 o 6 xdlolololol
 
         self.binary_to_librosa_rdd()
-        #self.split_and_pad()
+        self.split_and_pad()
         # audio_to_melspectogram_rdd
 
     def get_DataFrame(self):
@@ -37,8 +38,8 @@ class WAV(object):
         
     # return an rdd with librosa objects and corresponding path
     def binary_to_librosa_rdd(self):
-        binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
-        self.rdd = binary_wave_rdd.map(lambda x : (x[0], librosa.load(io.BytesIO(x[1]))))
+        binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'* 1.wav')
+        self.rdd = binary_wave_rdd.map(lambda x : (x[0], wavfile.read(io.BytesIO(x[1]))))
 
     def split_and_pad(self):
         annotationDataframe = self.recording_annotation()
@@ -47,8 +48,8 @@ class WAV(object):
     # y_s : splitted signal
     # sr  : sample_rate splitted
     def audio_to_melspectogram_rdd(self, y_s, sr_s):
-
-        mel_spec = librosa.feature.melspectrogram(y=y_s, sr=sr_s)
+        pass
+        #mel_spec = librosa.feature.melspectrogram(y=y_s, sr=sr_s)
         
 
     def recording_info(self):
