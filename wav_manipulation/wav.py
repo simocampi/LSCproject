@@ -26,8 +26,13 @@ class WAV(object):
         self.target_sample_rate = 22000 
         self.sample_length_seconds = 6 # 5 o 6 xdlolololol
 
-        self.binary_to_librosa_rdd()
-        self.split_and_pad()
+        # info about recording
+        self.recording_info()
+        # nrecording annotation
+        self.recording_annotation()
+
+        self.read_wav()
+        #self.split_and_pad()
         # audio_to_melspectogram_rdd
 
     def get_DataFrame(self):
@@ -36,14 +41,14 @@ class WAV(object):
     def get_Rdd(self):
         return self.rdd
         
-    # return an rdd with librosa objects and corresponding path
-    def binary_to_librosa_rdd(self):
-        binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'* 1.wav')
+    # return an rdd with data and corresponding path
+    def read_wav(self):
+        binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
         self.rdd = binary_wave_rdd.map(lambda x : (x[0], wavfile.read(io.BytesIO(x[1]))))
 
     def split_and_pad(self):
-        annotationDataframe = self.recording_annotation()
-        self.rdd2 = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0])), self.sample_length_seconds))
+        annotationDataframe = self.annotationDataframe
+        self.rdd = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0])), self.sample_length_seconds))
     
     # y_s : splitted signal
     # sr  : sample_rate splitted
@@ -81,7 +86,7 @@ class WAV(object):
             withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName) ).\
             withColumn("Duration", col("End") - col("Start"))
 
-        return self.annotationDataframe
+        
         # the class variable the Dataframe containing the recording annotation
         #df.printSchema()
         #df.show(2, False)
