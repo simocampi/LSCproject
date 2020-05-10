@@ -24,7 +24,7 @@ class WAV(object):
         # parameters in order to have an equivalent representations for each Wav file
         self.target_sample_rate = 22000 
         self.sample_length_seconds = 6 # 5 o 6 xdlolololol
-
+        self.sample_rate = 44100 # the sample rate is fix because of a previous conversion (are all 16 bit format with 44.10 KHz)
         # info about recording
         self.recording_info()
         # nrecording annotation
@@ -47,7 +47,7 @@ class WAV(object):
 
     def split_and_pad(self):
         annotationDataframe = self.annotationDataframe
-        self.rdd = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0])), self.sample_length_seconds))
+        self.rdd = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0][:-4] + ".txt")), self.sample_length_seconds, self.sample_rate))
     
     # y_s : splitted signal
     # sr  : sample_rate splitted
@@ -88,7 +88,7 @@ class WAV(object):
         
         # the class variable the Dataframe containing the recording annotation
         #df.printSchema()
-        self.annotationDataframe.show(2, False)
+        #self.annotationDataframe.show(2, False)
    
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()

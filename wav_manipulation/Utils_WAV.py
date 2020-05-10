@@ -5,14 +5,14 @@ from io import BytesIO
 from DataManipulation.Utils.Path import Path
 
 
-def slice_with_annotation(audio, annotations, max_len):
+def slice_with_annotation(audio, annotations, max_len, sample_rate):
     
     start, end, duration = annotations['Start'], annotations['End'], annotations['Duration']
 
     if max_len < end - start:
         end = start + max_len
 
-    splitted_data = slice_data(start, end, audio[1][1],  audio[1][0])
+    splitted_data = slice_data(start, end, audio[1],  sample_rate)
         
     return (audio[0], splitted_data, annotations["Crackels"], annotations["Wheezes"])
     
