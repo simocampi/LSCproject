@@ -2,8 +2,8 @@
 from os.path import *
 import io
 import subprocess
-#import librosa
 from scipy.io import wavfile
+from scipy.signal import spectrogram
 
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
@@ -25,7 +25,7 @@ class WAV(object):
         # parameters in order to have an equivalent representations for each Wav file
         self.target_sample_rate = 22000 
         self.sample_length_seconds = 6 # 5 o 6 xdlolololol
-
+        self.sample_rate = 44100 # the sample rate is fix because of a previous conversion (are all 16 bit format with 44.10 KHz)
         # info about recording
         self.recording_info()
         # nrecording annotation
@@ -48,13 +48,26 @@ class WAV(object):
 
     def split_and_pad(self):
         annotationDataframe = self.annotationDataframe
-        self.rdd = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0])), self.sample_length_seconds))
+        self.rdd = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0][:-4] + ".txt")), self.sample_length_seconds, self.sample_rate))
     
-    # y_s : splitted signal
-    # sr  : sample_rate splitted
-    def audio_to_melspectogram_rdd(self, y_s, sr_s):
-        pass
-        #mel_spec = librosa.feature.melspectrogram(y=y_s, sr=sr_s)
+    # x : splitted signal
+    # fs : sample_rate splitted
+    # rdd_split_and_pad_rdd : splitted rdd
+    # rdd_split_and_pad_rdd : splitted rdd
+    def audio_to_melspectogram_rdd(self, rdd_split_and_pad_rdd):
+        
+        #split and pad:
+        # 1 elem -> nome file
+        # 2 elem -> audio spezzettato
+         
+        rdd_spect = self.spark_context.emptyRDD
+
+        splitted_signal = rdd_split_and_pad_rdd.map(lambda x : x[1])
+
+        spectrogram_rdd = splitted_signal.map(lambda sliced_data : sliced_data_to_spectrogram(self.spark_context,rdd_spect, slice_data))
+        
+        return spectrogram_rdd
+    
         
 
     def recording_info(self):
@@ -89,7 +102,7 @@ class WAV(object):
         
         # the class variable the Dataframe containing the recording annotation
         #df.printSchema()
-        #df.show(2, False)
+        #self.annotationDataframe.show(2, False)
    
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()

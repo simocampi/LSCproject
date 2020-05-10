@@ -45,7 +45,7 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 wav = WAV(spark_session, spark_context)
 
 audio_rdd = wav.get_Rdd()
-print( audio_rdd.count() )
+print( audio_rdd.take(1) )
 
 #wav_b = wav.binary_to_librosa_rdd()
 
@@ -69,8 +69,8 @@ print( audio_rdd.count() )
 
 #rename all the files
 #for filename in os.listdir(Path.get_wav_file_path()):#
-#    
-#    dst = filename[:-6] + "_16.wav"
-#    
-#    os.rename(Path.get_wav_file_path()+filename, Path.get_wav_file_path()+dst)
-
+    #if filename[-3:] =='txt' or filename == 'index_fileName':
+        #continue
+    #dst = filename[:-5] + ".wav"
+    
+    #os.rename(Path.get_wav_file_path()+filename, Path.get_wav_file_path()+dst)
