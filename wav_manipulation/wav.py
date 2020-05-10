@@ -2,7 +2,6 @@
 from os.path import *
 import io
 import subprocess
-#import librosa
 from scipy.io import wavfile
 
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
@@ -89,7 +88,7 @@ class WAV(object):
         
         # the class variable the Dataframe containing the recording annotation
         #df.printSchema()
-        #df.show(2, False)
+        self.annotationDataframe.show(2, False)
    
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()

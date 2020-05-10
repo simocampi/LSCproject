@@ -69,8 +69,9 @@ print( audio_rdd.count() )
 
 #rename all the files
 #for filename in os.listdir(Path.get_wav_file_path()):#
-#    
-#    dst = filename[:-6] + "_16.wav"
-#    
-#    os.rename(Path.get_wav_file_path()+filename, Path.get_wav_file_path()+dst)
+    #if filename[-3:] =='txt' or filename == 'index_fileName':
+        #continue
+    #dst = filename[:-5] + ".wav"
+    
+    #os.rename(Path.get_wav_file_path()+filename, Path.get_wav_file_path()+dst)
 
