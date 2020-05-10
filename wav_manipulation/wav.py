@@ -3,6 +3,7 @@ from os.path import *
 import io
 import subprocess
 from scipy.io import wavfile
+from scipy.signal import spectrogram
 
 from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
 from pyspark.sql import SparkSession
@@ -49,11 +50,24 @@ class WAV(object):
         annotationDataframe = self.annotationDataframe
         self.rdd = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0])), self.sample_length_seconds))
     
-    # y_s : splitted signal
-    # sr  : sample_rate splitted
-    def audio_to_melspectogram_rdd(self, y_s, sr_s):
-        pass
-        #mel_spec = librosa.feature.melspectrogram(y=y_s, sr=sr_s)
+    # x : splitted signal
+    # fs : sample_rate splitted
+    # rdd_split_and_pad_rdd : splitted rdd
+    # rdd_split_and_pad_rdd : splitted rdd
+    def audio_to_melspectogram_rdd(self, rdd_split_and_pad_rdd):
+        
+        #split and pad:
+        # 1 elem -> nome file
+        # 2 elem -> audio spezzettato
+         
+        rdd_spect = self.spark_context.emptyRDD
+
+        splitted_signal = rdd_split_and_pad_rdd.map(lambda x : x[1])
+
+        spectrogram_rdd = splitted_signal.map(lambda sliced_data : sliced_data_to_spectrogram(self.spark_context,rdd_spect, slice_data))
+        
+        return spectrogram_rdd
+    
         
 
     def recording_info(self):
