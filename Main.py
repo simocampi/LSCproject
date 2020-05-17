@@ -8,6 +8,8 @@ from wav_manipulation.Utils_WAV import *
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
+from DataManipulation.Utils.Path import Path
+
 import os
 
 
@@ -15,8 +17,8 @@ conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
 
 spark_session = SparkSession(sparkContext=spark_context).builder \
-                .getOrCreate()
-
+                .getOrCreate() \
+                
 '''
 # ----the dataframe containing the informations about patients is created
 demographic_info = DemographicInfo(spark_session)
@@ -44,15 +46,11 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
      
 wav = WAV(spark_session, spark_context)
 
+#print(len(Path.get_wav_file_path()))
 audio_rdd = wav.get_Rdd()
-print( audio_rdd.take(1) )
+print( audio_rdd.take(1))
 
-#wav_b = wav.binary_to_librosa_rdd()
 
-#frame_rate = binary_wave_rdd.map(lambda x : x[1].getframerate())
-#frame_rate = binary_wave_rdd.map(lambda x : x[1][1])
-
-#print('Count Frame rate in rdd: ', frame_rate.collect())
 
 
 #spect = binary_wave_rdd.map(lambda x: x[1])

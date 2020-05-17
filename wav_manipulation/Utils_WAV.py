@@ -1,15 +1,14 @@
-import wave, math
+import math
 import numpy as np
 #import scipy.io.wavfile as wf
-from io import BytesIO
 from DataManipulation.Utils.Path import Path
 from scipy.signal import spectrogram
 
 
 def slice_with_annotation(audio, annotations, max_len, sample_rate):
     
-    start, end, duration = annotations['Start'], annotations['End'], annotations['Duration']
-
+    start, end, duration = annotations['Start'].collect(), annotations['End'].collect(), annotations['Duration'].collect()
+    
     if max_len < end - start:
         end = start + max_len
 
@@ -24,12 +23,12 @@ def slice_data(start, end, raw_data,  sample_rate):
     end_ind = min(int(end * sample_rate), max_ind)
     return raw_data[start_ind: end_ind]
 
-def sliced_data_to_spectrogram(spark_context, rdd_f, sliced_data, fs = 44100):
-        rdd = spark_context.emptyRDD
-        for s in slice_data:
-            rdd_spect = spark_context.parallelize(spectrogram(s,fs))
-            spark_context.union([rdd, rdd_spect])
-        return spark_context.union( [rdd_f, rdd] )
+#def sliced_data_to_spectrogram(spark_context, rdd_f, sliced_data, fs = 44100):
+        #rdd = spark_context.emptyRDD
+        #for s in slice_data:
+            #rdd_spect = spark_context.parallelize(spectrogram(s,fs))
+            #spark_context.union([rdd, rdd_spect])
+        #return spark_context.union( [rdd_f, rdd] )
 
 #def compute_len(samp_rate=22050, time=6, acquisition_mode=0):
 '''Computes the supposed length of sliced data

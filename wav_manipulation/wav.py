@@ -23,9 +23,9 @@ class WAV(object):
         self.wav_fileName = self.get_fileNames_test() 
 
         # parameters in order to have an equivalent representations for each Wav file
-        self.target_sample_rate = 22000 
         self.sample_length_seconds = 6 # 5 o 6 xdlolololol
         self.sample_rate = 44100 # the sample rate is fix because of a previous conversion (are all 16 bit format with 44.10 KHz)
+        
         # info about recording
         self.recording_info()
         # nrecording annotation
@@ -43,30 +43,36 @@ class WAV(object):
         
     # return an rdd with data and corresponding path
     def read_wav(self):
-        binary_wave_rdd= self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
-        self.rdd = binary_wave_rdd.map(lambda x : (x[0], wavfile.read(io.BytesIO(x[1]))))
+        binary_wav_rdd = self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
+        self.rdd = binary_wav_rdd.map(lambda x : (x[0].split("/", -1)[-1], wavfile.read(io.BytesIO(x[1]))))
+
+        annotationDataframe = self.annotationDataframe
+        #self.rdd = rdd.map(lambda x : (x[0][:-4]+".txt"))
+        #self.rdd = rdd.map(lambda x : (annotationDataframe.where("Filename=={}".format(x[0][:-4]+ ".txt")).rdd)) # discrad the sample rate
+        gigi = self.rdd.take(1)
+        print(annotationDataframe.where("Filename=={}".format(gigi[0][0][:-4] + ".txt")))
 
     def split_and_pad(self):
         annotationDataframe = self.annotationDataframe
-        self.rdd = self.rdd.map(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0][:-4] + ".txt")), self.sample_length_seconds, self.sample_rate))
+        self.rdd = self.rdd.flatMap(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0][:-4]+ ".txt")), self.sample_length_seconds, self.sample_rate))
     
     # x : splitted signal
     # fs : sample_rate splitted
     # rdd_split_and_pad_rdd : splitted rdd
     # rdd_split_and_pad_rdd : splitted rdd
-    def audio_to_melspectogram_rdd(self, rdd_split_and_pad_rdd):
+    #def audio_to_melspectogram_rdd(self, rdd_split_and_pad_rdd):
         
         #split and pad:
         # 1 elem -> nome file
         # 2 elem -> audio spezzettato
          
-        rdd_spect = self.spark_context.emptyRDD
+        #rdd_spect = self.spark_context.emptyRDD
 
-        splitted_signal = rdd_split_and_pad_rdd.map(lambda x : x[1])
+        #splitted_signal = rdd_split_and_pad_rdd.map(lambda x : x[1])
 
-        spectrogram_rdd = splitted_signal.map(lambda sliced_data : sliced_data_to_spectrogram(self.spark_context,rdd_spect, slice_data))
+        #spectrogram_rdd = splitted_signal.map(lambda sliced_data : sliced_data_to_spectrogram(self.spark_context,rdd_spect, slice_data))
         
-        return spectrogram_rdd
+        #return spectrogram_rdd
     
         
 
@@ -87,7 +93,7 @@ class WAV(object):
         #wav_DF.show(2, False)
 
     def recording_annotation(self):
-        idx_fileName = len(WAV.PATH_FILES_WAV.split(Path.path_separator))
+        idx_fileName = len(WAV.PATH_FILES_WAV.split("/"))
 
         original_schema = [ StructField("Start", FloatType(), False),
                             StructField("End",  FloatType(), False),
@@ -96,13 +102,13 @@ class WAV(object):
 
         self.annotationDataframe = self.spark_session.read.\
             csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= StructType(original_schema), sep='\t').\
-            withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName) ).\
+            withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName - 1) ).\
             withColumn("Duration", col("End") - col("Start"))
 
-        
+        self.annotationDataframe.where("Filename==107_2b3_Ll_mc_AKGC417L.txt").show()
         # the class variable the Dataframe containing the recording annotation
-        #df.printSchema()
-        #self.annotationDataframe.show(2, False)
+        #self.annotationDataframe.printSchema()
+        self.annotationDataframe.show(2, False)
    
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()
