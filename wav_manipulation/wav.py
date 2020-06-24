@@ -1,19 +1,18 @@
-#from os import listdir
+from os import listdir
 from os.path import *
 import io
 import subprocess
 from scipy.io import wavfile
-from scipy.signal import spectrogram
-
-from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType)
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import split, substring, col, regexp_replace, reverse, lit, input_file_name
-from wav_manipulation.Utils_WAV import *
+from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType, ArrayType, ByteType, BinaryType)
+from pyspark.sql.functions import split, substring, col, regexp_replace, reverse, lit, input_file_name, udf
+import numpy as np
+from Utils.utils_wav import *
 from DataManipulation.Utils.Path import Path
+import librosa as lb
 
-
-
-class WAV(object):
+def round_half_up(number):
+    return int(decimal.Decimal(number).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP))
+class WAV():
     
     PATH_FILES_WAV = Path.get_wav_file_path()
     
@@ -22,44 +21,90 @@ class WAV(object):
         self.spark_context = spark_context
         self.wav_fileName = self.get_fileNames_test() 
 
+        self.binary_wav_schema = [StructField('Filename', StringType(), False),
+                                    StructField('Sample_rate', IntegerType(), False),
+                                    StructField('Data', ArrayType(FloatType()), False)]
+
         # parameters in order to have an equivalent representations for each Wav file
         self.sample_length_seconds = 6 # 5 o 6 xdlolololol
-        self.sample_rate = 44100 # the sample rate is fix because of a previous conversion (are all 16 bit format with 44.10 KHz)
-        
+
         # info about recording
         self.recording_info()
         # nrecording annotation
         self.recording_annotation()
 
         self.read_wav()
-        #self.split_and_pad()
-        # audio_to_melspectogram_rdd
+        self.split_and_pad()
+        self.audio_to_mfcc()
 
     def get_DataFrame(self):
-        return self.rdd.toDF()
+        return self.rdd
         
     def get_Rdd(self):
         return self.rdd
-        
+
     # return an rdd with data and corresponding path
     def read_wav(self):
+
         binary_wav_rdd = self.spark_context.binaryFiles(Path.get_wav_file_path()+'*.wav')
-        self.rdd = binary_wav_rdd.map(lambda x : (x[0].split("/", -1)[-1], wavfile.read(io.BytesIO(x[1]))))
+        open_file_rdd = binary_wav_rdd.map(lambda x: (x[0].split("/")[-1][:-3] +'txt', wavfile.read(io.BytesIO(x[1])))).map(lambda x: (x[0],x[1][0], np.array(x[1][1], dtype=float).tolist()))
+        self.dataFrame = open_file_rdd.toDF(StructType(self.binary_wav_schema))
 
-        annotationDataframe = self.annotationDataframe
-        #self.rdd = rdd.map(lambda x : (x[0][:-4]+".txt"))
-        #self.rdd = rdd.map(lambda x : (annotationDataframe.where("Filename=={}".format(x[0][:-4]+ ".txt")).rdd)) # discrad the sample rate
-        gigi = self.rdd.take(1)
-        print(annotationDataframe.where("Filename=={}".format(gigi[0][0][:-4] + ".txt")))
-
+    # select the portion of the file of interest and add zero if not long enough
     def split_and_pad(self):
-        annotationDataframe = self.annotationDataframe
-        self.rdd = self.rdd.flatMap(lambda audio: slice_with_annotation(audio, annotationDataframe.where("Filename=={}".format(audio[0][:-4]+ ".txt")), self.sample_length_seconds, self.sample_rate))
-    
-    # x : splitted signal
-    # fs : sample_rate splitted
-    # rdd_split_and_pad_rdd : splitted rdd
-    # rdd_split_and_pad_rdd : splitted rdd
+        audioDataFrame = self.dataFrame
+        annotationRdd = self.annotationDataframe
+
+        # join annotation and file content
+        jointDataframe = annotationRdd.join(audioDataFrame, on=['Filename'], how='inner').rdd
+
+        max_len = self.sample_length_seconds
+
+        # slicing the data
+        slice_data = jointDataframe.map(lambda x: (x[7][min(int(x[1] * x[6]), len(x[7])):min(int((x[1] + max_len) * x[6]), len(x[7]))], x[6], x[3], x[4]) if max_len < x[2] - x[1] \
+                                                                                                                   else (x[7][min(int(x[1] * x[6]), len(x[7])):min(int(x[2] * x[6]), len(x[7]))], x[6], x[3], x[4]))
+        # padding if not long enough
+        self.rdd = slice_data.map(lambda x: (x[0] + [0 for _ in range(max_len - len(x[0]))], x[1], x[2], x[3])) # data, sample rate, Crackels, Wheezes
+
+    # function inspired by https://github.com/jameslyons/python_speech_features/blob/master/python_speech_features/sigproc.py
+    def audio_to_mfcc(self,winlen=0.025,winstep=0.01,numcep=13, nfilt=26,lowfreq=0,highfreq=None,preemph=0.97,ceplifter=22,appendEnergy=True,winfunc=lambda x:np.ones((x,))):
+        """Compute MFCC features from an audio signal.
+        :param signal: the audio signal from which to compute features. Should be an N*1 array
+        :param samplerate: the sample rate of the signal we are working with, in Hz.
+        :param winlen: the length of the analysis window in seconds. Default is 0.025s (25 milliseconds)
+        :param winstep: the step between successive windows in seconds. Default is 0.01s (10 milliseconds)
+        :param numcep: the number of cepstrum to return, default 13
+        :param nfilt: the number of filters in the filterbank, default 26.
+        :param nfft: the FFT size. Default is None, which uses the calculate_nfft function to choose the smallest size that does not drop sample data.
+        :param lowfreq: lowest band edge of mel filters. In Hz, default is 0.
+        :param highfreq: highest band edge of mel filters. In Hz, default is samplerate/2
+        :param preemph: apply preemphasis filter with preemph as coefficient. 0 is no filter. Default is 0.97.
+        :param ceplifter: apply a lifter to final cepstral coefficients. 0 is no lifter. Default is 22.
+        :param appendEnergy: if this is true, the zeroth cepstral coefficient is replaced with the log of the total frame energy.
+        :param winfunc: the analysis window to apply to each frame. By default no window is applied. You can use numpy window functions here e.g. winfunc=numpy.hamming
+        :returns: A list of shape (NUMFRAMES by numcep) containing features. Each row holds 1 feature vector.
+        """
+        coeff=0.95
+        
+
+        preprocessing_map = self.rdd.map(lambda x: (np.array(x[0]), x[1], x[2], x[3]))
+
+        preemphasis_map = preprocessing_map.map(lambda x: (np.append(x[0][0], x[0][1:] - x[0][:-1] * coeff), \
+                                                                x[1], x[2], x[3])) #perform preemphasis on the input signal.
+
+        frame_info_map = preemphasis_map.map(lambda x: (x[0], x[1], x[2], x[3], int(decimal.Decimal(winlen * x[1]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)), int(decimal.Decimal(winstep * x[1]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step
+        
+        num_frame_map = frame_info_map.map(lambda x: (x[0], x[1], x[2], x[3], x[4], x[5], 1 if len(x[0]) < x[4] \
+                                                        else 1 + int(math.ceil((1.0 * len(x[0]) - x[4]) / x[5])))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step, num_frames
+
+        framesig_map = num_frame_map.flatMap(lambda x: ( np.lib.stride_tricks.as_strided(np.concatenate((x[0], np.zeros((int((x[6] - 1) * x[5] + x[4]) - len(x[0]))))), shape=x[0].shape[:-1] + (x[0].shape[-1] - x[4] + 1, x[4]), strides=x[0].strides + (x[0].strides[-1],))[::x[5]], \
+                                                                x[1], x[2], x[3])) # create A list of shape (NUMFRAMES by frame_length)
+
+        # flatting in order to have for each element of the rdd a frame with its sample rate, Crackels and Wheezes
+        #add_info_to_frame = add_info_to_frame
+        #filterbank_map = filtered_signal_map.map(lambda x: (fbank(x[0],x[1], winlen,winstep,nfilt, calculate_nfft(x[1], winlen),lowfreq,highfreq,preemph,winfunc), x[1], x[2], x[3]))
+        self.rdd=framesig_map
+
     #def audio_to_melspectogram_rdd(self, rdd_split_and_pad_rdd):
         
         #split and pad:
@@ -68,7 +113,6 @@ class WAV(object):
          
         #rdd_spect = self.spark_context.emptyRDD
 
-        #splitted_signal = rdd_split_and_pad_rdd.map(lambda x : x[1])
 
         #spectrogram_rdd = splitted_signal.map(lambda sliced_data : sliced_data_to_spectrogram(self.spark_context,rdd_spect, slice_data))
         
@@ -102,13 +146,14 @@ class WAV(object):
 
         self.annotationDataframe = self.spark_session.read.\
             csv(path=WAV.PATH_FILES_WAV+'*.txt', header=False, schema= StructType(original_schema), sep='\t').\
-            withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName - 1) ).\
+            withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName - 1)).\
             withColumn("Duration", col("End") - col("Start"))
 
-        self.annotationDataframe.where("Filename==107_2b3_Ll_mc_AKGC417L.txt").show()
+        #print(self.annotationDataframe.select("Filename").count())
+        #self.annotationDataframe.where("Filename=='101_1b1_Pr_sc_Meditron.txt'").show()
         # the class variable the Dataframe containing the recording annotation
         #self.annotationDataframe.printSchema()
-        self.annotationDataframe.show(2, False)
+        #self.annotationDataframe.show(2, False)
    
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()

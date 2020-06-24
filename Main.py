@@ -1,16 +1,11 @@
 from pyspark.sql import SparkSession
 from pyspark import SparkContext, SparkConf
 
-from pyspark.sql.functions import format_number 
 
-from wav_manipulation.wav import *
-from wav_manipulation.Utils_WAV import *
+from wav_manipulation.wav import WAV
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
-from DataManipulation.Utils.Path import Path
-
-import os
 
 
 conf = SparkConf().setAppName('LSC_Project')
@@ -41,13 +36,10 @@ rdd_demographic_info=demographic_info.get_Rdd()
 rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_child(p)).toDF(demographic_info.) # new schema DemographicInfo
 '''
 
-
-
-     
 wav = WAV(spark_session, spark_context)
 
-#print(len(Path.get_wav_file_path()))
-audio_rdd = wav.get_Rdd()
+audio_rdd = wav.get_DataFrame()
+#print(audio_rdd.printSchema())
 print( audio_rdd.take(1))
 
 
