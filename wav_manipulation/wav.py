@@ -66,7 +66,7 @@ class WAV():
         # padding if not long enough
         self.rdd = slice_data.map(lambda x: (x[0] + [0 for _ in range(max_len - len(x[0]))], x[1], x[2], x[3])) # data, sample rate, Crackels, Wheezes
 
-    # function inspired by https://github.com/jameslyons/python_speech_features/blob/master/python_speech_features/sigproc.py
+    # function inspired by https://github.com/jameslyons/python_speech_features/blob/master/python_speech_features/base.py
     def audio_to_mfcc(self,winlen=0.025,winstep=0.01,numcep=13, nfilt=26,lowfreq=0,highfreq=None,preemph=0.97,ceplifter=22,appendEnergy=True,winfunc=lambda x:np.ones((x,))):
         """Compute MFCC features from an audio signal.
         :param signal: the audio signal from which to compute features. Should be an N*1 array
@@ -85,25 +85,64 @@ class WAV():
         :returns: A list of shape (NUMFRAMES by numcep) containing features. Each row holds 1 feature vector.
         """
         coeff=0.95
+        nfft=2048
+        # compute points evenly spaced in mels
+        lowmel = hz2mel(lowfreq)
+        #highmel = hz2mel(highfreq) # depending on the sample rate
+        #melpoints = np.linspace(lowmel,highmel,nfilt+2)
         
 
-        preprocessing_map = self.rdd.map(lambda x: (np.array(x[0]), x[1], x[2], x[3]))
+        data_idx = 0
+        sample_rate_idx = 1
+        crackels_idx = 2
+        wheezes_idx = 3
 
-        preemphasis_map = preprocessing_map.map(lambda x: (np.append(x[0][0], x[0][1:] - x[0][:-1] * coeff), \
-                                                                x[1], x[2], x[3])) #perform preemphasis on the input signal.
+        preprocessing_map = self.rdd.map(lambda x: (np.array(x[data_idx]), x[sample_rate_idx], x[crackels_idx], x[wheezes_idx]))
 
-        frame_info_map = preemphasis_map.map(lambda x: (x[0], x[1], x[2], x[3], int(decimal.Decimal(winlen * x[1]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)), int(decimal.Decimal(winstep * x[1]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step
+        preemphasis_map = preprocessing_map.map(lambda x: (np.append(x[data_idx][0], x[data_idx][1:] - x[data_idx][:-1] * coeff), \
+                                                                x[sample_rate_idx], x[crackels_idx], x[wheezes_idx])) #perform preemphasis on the input signal.
+
+        frame_info_map = preemphasis_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], int(decimal.Decimal(winlen * x[sample_rate_idx]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)), int(decimal.Decimal(winstep * x[sample_rate_idx]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step
         
-        num_frame_map = frame_info_map.map(lambda x: (x[0], x[1], x[2], x[3], x[4], x[5], 1 if len(x[0]) < x[4] \
+        num_frame_map = frame_info_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], 1 if len(x[0]) < x[4] \
                                                         else 1 + int(math.ceil((1.0 * len(x[0]) - x[4]) / x[5])))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step, num_frames
 
-        framesig_map = num_frame_map.flatMap(lambda x: ( np.lib.stride_tricks.as_strided(np.concatenate((x[0], np.zeros((int((x[6] - 1) * x[5] + x[4]) - len(x[0]))))), shape=x[0].shape[:-1] + (x[0].shape[-1] - x[4] + 1, x[4]), strides=x[0].strides + (x[0].strides[-1],))[::x[5]], \
-                                                                x[1], x[2], x[3])) # create A list of shape (NUMFRAMES by frame_length)
-
+        framesig_map = num_frame_map.map(lambda x: ( np.lib.stride_tricks.as_strided(np.concatenate((x[data_idx], np.zeros((int((x[6] - 1) * x[5] + x[4]) - len(x[data_idx]))))), shape=x[data_idx].shape[:-1] + (x[data_idx].shape[-1] - x[4] + 1, x[4]), strides=x[data_idx].strides + (x[data_idx].strides[-1],))[::x[5]], \
+                                                                x[sample_rate_idx], x[crackels_idx], x[wheezes_idx])) # create A list of shape (NUMFRAMES by frame_length)
+        
+        # the windowing of the frame is not applied since is the identity (forse faccio la map dopo)
+        
         # flatting in order to have for each element of the rdd a frame with its sample rate, Crackels and Wheezes
-        #add_info_to_frame = add_info_to_frame
-        #filterbank_map = filtered_signal_map.map(lambda x: (fbank(x[0],x[1], winlen,winstep,nfilt, calculate_nfft(x[1], winlen),lowfreq,highfreq,preemph,winfunc), x[1], x[2], x[3]))
-        self.rdd=framesig_map
+        add_info_to_frame_map = framesig_map.flatMap(lambda x: np.array([f.tolist() + [x[sample_rate_idx]] + [x[crackels_idx]] + [x[wheezes_idx]] for f in x[data_idx]]))
+        flat_frames_map = add_info_to_frame_map.map(lambda x: (x[:-4], int(x[-3]), int(x[-2]), int(x[-1])))
+
+        powspec_map = flat_frames_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx],\
+                                             1.0 / nfft * np.square(np.absolute(np.fft.rfft(x[data_idx], nfft))))) # data, sample rate, Crackels and Wheezes, power spectrum
+
+        energy_map = powspec_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4],np.sum(x[4]))) # data, sample rate, Crackels and Wheezes, power spectrum, energy
+        energy_map = energy_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4],np.finfo(float).esp if x[5]== 0 else x[5])) # if energy is zero, we get problems with log
+
+
+        # ***get_filterbanks***
+
+        # compute points evenly spaced in mels, Convert a value in Hertz to Mels
+        melpoint_map = energy_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.linspace(lowmel, 2595 * np.log10(1+(x[sample_rate_idx]/2)/700.),nfilt+2))) # ... power spect, energy, melpoints   
+
+        # Convert a value in Mels to Hertz: our points are in Hz, but we use fft bins, so we have to convert
+        #  from Hz to fft bin number
+        bin_map = melpoint_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.floor( (nfft + 1) * (700*(10**(x[6]/2595.0)-1)) /x[sample_rate_idx]) )) # ...power spect, energy, bin
+
+        """Compute a Mel-filterbank. The filters are stored in the rows, the columns correspond
+        to fft bins. The filters are returned as an array of size nfilt * (nfft/2 + 1)"""
+        bin_idx = 6
+        filter_banks_map = bin_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], [ (i - x[bin_idx][j]) / (x[bin_idx][j+1]-x[bin_idx][j]) if i in range(int(x[bin_idx][j]), int(x[bin_idx][j+1])) \
+                                                                                                                                    else (x[bin_idx][j+2]-i) / (x[bin_idx][j+2]-x[bin_idx][j+1]) if i in range(int(x[bin_idx][j+1]), int(x[bin_idx][j+2])) \
+                                                                                                                                    else 0. \
+                                                                                                                                    for j in range(nfilt) for i in range(nfft//2) ] ))
+        filter_banks_map = filter_banks_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.array(x[6]).reshape([nfilt,nfft//2+1])))
+        
+        #filterbank_map = filtered_signal_map.map(lambda x: (fbank(x[0],x[1], winlen,winstep,nfilt, calculate_nfft(x[1], winlen),lowfreq,highfreq,preemph,winfunc), x[1], x[2], x[3]))  [ x[7][j, i]=((i - bin[j]) / (bin[j+1]-bin[j])) for j in range(0,nfilt) for i in range(int(x[6][j]), int(x[6][j+1])) ]
+        self.rdd=filter_banks_map
 
     #def audio_to_melspectogram_rdd(self, rdd_split_and_pad_rdd):
         

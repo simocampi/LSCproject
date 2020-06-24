@@ -31,6 +31,19 @@ def calculate_nfft(samplerate, winlen):
         nfft *= 2
     return nfft
 
+def hz2mel(hz):
+    """Convert a value in Hertz to Mels
+    :param hz: a value in Hz. This can also be a numpy array, conversion proceeds element-wise.
+    :returns: a value in Mels. If an array was passed in, an identical sized array is returned.
+    """
+    return 2595 * np.log10(1+hz/700.)
+
+def mel2hz(mel):
+    """Convert a value in Mels to Hertz
+    :param mel: a value in Mels. This can also be a numpy array, conversion proceeds element-wise.
+    :returns: a value in Hertz. If an array was passed in, an identical sized array is returned.
+    """
+    return 700*(10**(mel/2595.0)-1)
 
 
 def get_shape_frame(a, win_len):
