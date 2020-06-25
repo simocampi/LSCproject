@@ -14,6 +14,10 @@ def slice_with_annotation(filename, start, end, crackels, wheezes, duration, sam
     start_ind = min(int(start * sample_rate), max_ind)
     end_ind = min(int(end * sample_rate), max_ind)
     return data[start_ind: end_ind], crackels, wheezes, sample_rate
+
+
+
+
     
 def calculate_nfft(samplerate, winlen):
     """Calculates the FFT size as a power of two greater than or equal to
@@ -52,26 +56,9 @@ def get_shape_frame(a, win_len):
 def get_strides_frame(a):
     return a.strides + (a.strides[-1],)
 
-def fbank(signal,samplerate=16000,winlen=0.025,winstep=0.01, nfilt=26,nfft=512,lowfreq=0,highfreq=None,preemph=0.97, winfunc=lambda x:np.ones((x,))):
-    """Compute Mel-filterbank energy features from an audio signal.
-    :param signal: the audio signal from which to compute features. Should be an N*1 array
-    :param samplerate: the sample rate of the signal we are working with, in Hz.
-    :param winlen: the length of the analysis window in seconds. Default is 0.025s (25 milliseconds)
-    :param winstep: the step between successive windows in seconds. Default is 0.01s (10 milliseconds)
-    :param nfilt: the number of filters in the filterbank, default 26.
-    :param nfft: the FFT size. Default is 512.
-    :param lowfreq: lowest band edge of mel filters. In Hz, default is 0.
-    :param highfreq: highest band edge of mel filters. In Hz, default is samplerate/2
-    :param preemph: apply preemphasis filter with preemph as coefficient. 0 is no filter. Default is 0.97.
-    :param winfunc: the analysis window to apply to each frame. By default no window is applied. You can use numpy window functions here e.g. winfunc=numpy.hamming
-    :returns: 2 values. The first is a numpy array of size (NUMFRAMES by nfilt) containing features. Each row holds 1 feature vector. The
-        second return value is the energy in each frame (total energy, unwindowed)
-    """
-
-    highfreq= highfreq or samplerate/2
-
-def prova():
-    return np.zeros(2)
+def append_energy(feat, energy):
+    feat[:,0] = np.log(energy)
+    return feat, energy
 
 
 
