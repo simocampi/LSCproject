@@ -39,7 +39,7 @@ class WAV():
         self.audio_to_mfcc()
 
     def get_DataFrame(self):
-        return self.rdd
+        return self.rdd.toDF()
         
     def get_Rdd(self):
         return self.rdd
@@ -85,12 +85,8 @@ class WAV():
         :param winfunc: the analysis window to apply to each frame. By default no window is applied. You can use numpy window functions here e.g. winfunc=numpy.hamming
         :returns: A list of shape (NUMFRAMES by numcep) containing features. Each row holds 1 feature vector.
         """
-        coeff=0.95
         nfft=2048 # the FFT size.
-        lowmel = hz2mel(lowfreq) # compute points evenly spaced in mels
-        
-        
-
+    
         data_idx = 0
         sample_rate_idx = 1
         crackels_idx = 2
@@ -98,50 +94,10 @@ class WAV():
 
         preprocessing_map = self.rdd.map(lambda x: (np.array(x[data_idx]), x[sample_rate_idx], x[crackels_idx], x[wheezes_idx]))
 
-        preemphasis_map = preprocessing_map.map(lambda x: (np.append(x[data_idx][0], x[data_idx][1:] - x[data_idx][:-1] * coeff), \
-                                                                x[sample_rate_idx], x[crackels_idx], x[wheezes_idx])) #perform preemphasis on the input signal.
+        feat_energy_rdd = self.fbank(preprocessing_map,winlen,winstep,nfilt,nfft,lowfreq,preemph,winfunc, data_idx, sample_rate_idx, crackels_idx, wheezes_idx)
 
-        frame_info_map = preemphasis_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], int(decimal.Decimal(winlen * x[sample_rate_idx]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)), int(decimal.Decimal(winstep * x[sample_rate_idx]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step
-        
-        num_frame_map = frame_info_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], 1 if len(x[0]) < x[4] \
-                                                        else 1 + int(math.ceil((1.0 * len(x[0]) - x[4]) / x[5])))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step, num_frames
-
-        framesig_map = num_frame_map.map(lambda x: ( np.lib.stride_tricks.as_strided(np.concatenate((x[data_idx], np.zeros((int((x[6] - 1) * x[5] + x[4]) - len(x[data_idx]))))), shape=x[data_idx].shape[:-1] + (x[data_idx].shape[-1] - x[4] + 1, x[4]), strides=x[data_idx].strides + (x[data_idx].strides[-1],))[::x[5]], \
-                                                                x[sample_rate_idx], x[crackels_idx], x[wheezes_idx])) # create A list of shape (NUMFRAMES by frame_length)
-        
-        # the windowing of the frame is not applied since is the identity 
-
-        powspec_map = framesig_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx],\
-                                             1.0 / nfft * np.square(np.absolute(np.fft.rfft(x[data_idx], nfft))))) # data, sample rate, Crackels and Wheezes, power spectrum
-
-        energy_map = powspec_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4],np.sum(x[4], 1))) # data, sample rate, Crackels and Wheezes, power spectrum, energy
-        energy_map = energy_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4],np.where(x[5] == 0,np.finfo(float).eps,x[5]))) # if energy is zero, we get problems with log
-
-
-        # ***get_filterbanks***
-
-        # compute points evenly spaced in mels, Convert a value in Hertz to Mels
-        melpoint_map = energy_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.linspace(lowmel, 2595 * np.log10(1+(x[sample_rate_idx]/2)/700.),nfilt+2))) # ... power spect, energy, melpoints   
-
-        # Convert a value in Mels to Hertz: our points are in Hz, but we use fft bins, so we have to convert
-        #  from Hz to fft bin number
-        bin_map = melpoint_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.floor( (nfft + 1) * (700*(10**(x[6]/2595.0)-1)) /x[sample_rate_idx]) )) # ...power spect, energy, bin
-
-        """Compute a Mel-filterbank. The filters are stored in the rows, the columns correspond
-        to fft bins. The filters are returned as an array of size nfilt * (nfft/2 + 1)"""
-        bin_idx = 6
-        filters_bank_map = bin_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], [ (i - x[bin_idx][j]) / (x[bin_idx][j+1]-x[bin_idx][j]) if i in range(int(x[bin_idx][j]), int(x[bin_idx][j+1])) \
-                                                                                                                                    else (x[bin_idx][j+2]-i) / (x[bin_idx][j+2]-x[bin_idx][j+1]) if i in range(int(x[bin_idx][j+1]), int(x[bin_idx][j+2])) \
-                                                                                                                                    else 0. \
-                                                                                                                                    for j in range(nfilt) for i in range(nfft//2 + 1) ] ))
-        filters_bank_map = filters_bank_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.array(x[6]).reshape([nfilt,nfft//2 + 1]))) # ...power spect, energy, filters bank
-
-        # apply filters bank
-        feature_energy_map = filters_bank_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], np.dot(x[4], x[6].T), x[5])) #...feature energy, energy
-        feature_energy_map = feature_energy_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], np.where(x[4] == 0,np.finfo(float).eps,x[4]), x[5])) # if energy is zero, we get problems with log
-        
         # take the log of the feature
-        log_feature_map = feature_energy_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], np.log(x[4]), x[5])) #...log feature energy, energy
+        log_feature_map = feat_energy_rdd.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], np.log(x[4]), x[5])) #...log feature energy, energy
 
         # DCT of the feature
         dct_map = log_feature_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], (dct(x[4], type=2, axis=1, norm='ortho')[:,:numcep]), x[5])) #... dct feature energy (cepstra), energy
@@ -152,7 +108,7 @@ class WAV():
         lifter_map = dct_map.map(lambda x: ( (1+(ceplifter/2.) * np.sin(np.pi * np.arange(numcep) / ceplifter)) * x[4] if ceplifter > 0 \
                                                 else x[4], x[5], x[crackels_idx], x[wheezes_idx])) # lifter cepstra, energy
 
-        # the first cepstral coefficient is replaced with the log of the total frame energy.
+        # the first cepstral coefficient is replaced with the log of the frame energy.
         log_energy_map = lifter_map.map(lambda x: ([ [np.log(e)] + f[1:].tolist() for e, f in zip(x[1], x[0])], x[crackels_idx], x[wheezes_idx]))
         
         # flatting in order to have for each element of the (final) rdd a frame (mfcc) with its Crackels and Wheezes labels
@@ -161,7 +117,85 @@ class WAV():
         self.rdd=flat_mfcc_map
 
 
+    def fbank(self, signal_rdd,winlen=0.025,winstep=0.01, nfilt=26,nfft=512,lowfreq=0,preemph=0.97, winfunc=lambda x:np.ones((x,)), data_idx=0, sample_rate_idx=1, crackels_idx=2, wheezes_idx=2):
+        """Compute Mel-filterbank energy features from an audio signal.
+        :param signal: the audio signal from which to compute features. Should be an N*1 array
+        :param samplerate: the sample rate of the signal we are working with, in Hz.
+        :param winlen: the length of the analysis window in seconds. Default is 0.025s (25 milliseconds)
+        :param winstep: the step between successive windows in seconds. Default is 0.01s (10 milliseconds)
+        :param nfilt: the number of filters in the filterbank, default 26.
+        :param nfft: the FFT size. Default is 512.
+        :param lowfreq: lowest band edge of mel filters. In Hz, default is 0.
+        :param highfreq: highest band edge of mel filters. In Hz, default is samplerate/2
+        :param preemph: apply preemphasis filter with preemph as coefficient. 0 is no filter. Default is 0.97.
+        :param winfunc: the analysis window to apply to each frame. By default no window is applied. You can use numpy window functions here e.g. winfunc=numpy.hamming
+        :returns: 2 values. The first is a numpy array of size (NUMFRAMES by nfilt) containing features. Each row holds 1 feature vector. The second return value is the energy in each frame (total energy, unwindowed)
+        """
+
+        preemphasis_map = signal_rdd.map(lambda x: (np.append(x[data_idx][0], x[data_idx][1:] - x[data_idx][:-1] * preemph), \
+                                                                x[sample_rate_idx], x[crackels_idx], x[wheezes_idx])) #perform preemphasis on the input signal.
+
+        framesig_map = self.get_frames(preemphasis_map, winlen, winstep, data_idx, sample_rate_idx, crackels_idx, wheezes_idx)
+        
+
+        # the windowing of the frame is not applied since is the identity...to be implemented se ne abbiamo voglia ma non necessario
+
+        # the power spectrum is computed
+        powspec_map = framesig_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx],\
+                                             1.0 / nfft * np.square(np.absolute(np.fft.rfft(x[data_idx], nfft))))) # data, sample rate, Crackels and Wheezes, power spectrum
+
+        # energy of each frame is computed, if it is zero it is substituted with something very small in order to not get in trouble with the following logarithm 
+        energy_map = powspec_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4],np.sum(x[4], 1))) # data, sample rate, Crackels and Wheezes, power spectrum, energy
+        energy_map = energy_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4],np.where(x[5] == 0,np.finfo(float).eps,x[5]))) # if energy is zero, we get problems with log
+
+        feature_energy_map = self.get_and_appy_filterbank(energy_map, nfilt,nfft,lowfreq, data_idx, sample_rate_idx, crackels_idx, wheezes_idx)
+
+        return feature_energy_map
     
+    def get_frames(self, signal_rdd ,winlen=0.025,winstep=0.01, data_idx=0, sample_rate_idx=1, crackels_idx=2, wheezes_idx=2):
+
+        # compute the parameters to split the signal, those parameters are saved in the rdd in order to compute them one time and not each time it needs
+        frame_info_map = signal_rdd.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], int(decimal.Decimal(winlen * x[sample_rate_idx]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)), int(decimal.Decimal(winstep * x[sample_rate_idx]).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step
+
+        num_frame_map = frame_info_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], 1 if len(x[0]) < x[4] \
+                                                        else 1 + int(math.ceil((1.0 * len(x[0]) - x[4]) / x[5])))) # data, sample rate, Crackels, Wheezes, frame_length, frame_step, num_frames
+
+            
+        framesig_map = num_frame_map.map(lambda x: ( np.lib.stride_tricks.as_strided(np.concatenate((x[data_idx], np.zeros((int((x[6] - 1) * x[5] + x[4]) - len(x[data_idx]))))), shape=x[data_idx].shape[:-1] + (x[data_idx].shape[-1] - x[4] + 1, x[4]), strides=x[data_idx].strides + (x[data_idx].strides[-1],))[::x[5]], \
+                                                                x[sample_rate_idx], x[crackels_idx], x[wheezes_idx])) # create A list of shape (NUMFRAMES by frame_length)
+        return framesig_map
+
+    def get_and_appy_filterbank(self, signal_rdd, nfilt=20,nfft=512,lowfreq=0, data_idx=0, sample_rate_idx=1, crackels_idx=2, wheezes_idx=2):
+        """Compute a Mel-filterbank. The filters are stored in the rows, the columns correspond
+        to fft bins. The filters are returned as an array of size nfilt * (nfft/2 + 1)
+        :param nfilt: the number of filters in the filterbank, default 20.
+        :param nfft: the FFT size. Default is 512.
+        :param samplerate: the sample rate of the signal we are working with, in Hz. Affects mel spacing.
+        :param lowfreq: lowest band edge of mel filters, default 0 Hz
+        :param highfreq: highest band edge of mel filters, default samplerate/2
+        :returns: A numpy array of size nfilt * (nfft/2 + 1) containing filterbank. Each row holds 1 filter.
+        """
+
+        lowmel = hz2mel(lowfreq)   # compute points evenly spaced in mels
+
+        # compute points evenly spaced in mels, Convert a value in Hertz to Mels
+        melpoint_map = signal_rdd.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.linspace(lowmel, 2595 * np.log10(1+(x[sample_rate_idx]/2)/700.),nfilt+2))) # ... power spect, energy, melpoints   
+
+        # Convert a value in Mels to Hertz: our points are in Hz, but we use fft bins, so we have to convert
+        #  from Hz to fft bin number
+        bin_map = melpoint_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.floor( (nfft + 1) * (700*(10**(x[6]/2595.0)-1)) /x[sample_rate_idx]) )) # ...power spect, energy, bin
+
+        bin_idx = 6
+        filters_bank_map = bin_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], [ (i - x[bin_idx][j]) / (x[bin_idx][j+1]-x[bin_idx][j]) if i in range(int(x[bin_idx][j]), int(x[bin_idx][j+1])) \
+                                                                                                                                        else (x[bin_idx][j+2]-i) / (x[bin_idx][j+2]-x[bin_idx][j+1]) if i in range(int(x[bin_idx][j+1]), int(x[bin_idx][j+2])) \
+                                                                                                                                        else 0. \
+                                                                                                                                        for j in range(nfilt) for i in range(nfft//2 + 1) ] ))
+        filters_bank_map = filters_bank_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[4], x[5], np.array(x[6]).reshape([nfilt,nfft//2 + 1]))) # ...power spect, energy, filters bank
+
+        # apply filters bank
+        feature_energy_map = filters_bank_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], np.dot(x[4], x[6].T), x[5])) #...feature energy, energy
+        feature_energy_map = feature_energy_map.map(lambda x: (x[data_idx], x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], np.where(x[4] == 0,np.finfo(float).eps,x[4]), x[5])) # if energy is zero, we get problems with log
+        return feature_energy_map
 
     def recording_info(self):
         wav_files = self.get_fileNames_test()
