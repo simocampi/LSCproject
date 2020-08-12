@@ -1,25 +1,19 @@
 from pyspark.sql import SparkSession
 from pyspark import SparkContext, SparkConf
 
-from pyspark.sql.functions import format_number 
 
-
-from wav_manipulation.wav import *
-from wav_manipulation.Utils_WAV import *
+from wav_manipulation.wav import WAV
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
 
 
-
 conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
 
-
 spark_session = SparkSession(sparkContext=spark_context).builder \
-                .getOrCreate()
-
-
+                .getOrCreate() \
+                
 '''
 # ----the dataframe containing the informations about patients is created
 demographic_info = DemographicInfo(spark_session)
@@ -39,21 +33,34 @@ df_demographic_info.printSchema()
 
 # get rid of the Child's informations => now BMI column contains the BMI for both Adult and Children
 rdd_demographic_info=demographic_info.get_Rdd()
-rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_child(p)).toDF(demographic_info.shrank_schema) # new schema DemographicInfo
+rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_child(p)).toDF(demographic_info.) # new schema DemographicInfo
 '''
 
-
-
-     
 wav = WAV(spark_session, spark_context)
 
-binary_wave_rdd = wav.binary_to_wave_rdd()
-
-frame_rate = binary_wave_rdd.map(lambda x : x[1].getframerate())
-
-print('Count Frame rate in rdd: ', frame_rate.count())
+audio_rdd = wav.get_Rdd()
+#print(audio_rdd.printSchema())
+print( audio_rdd.take(1))
 
 
 
-#wav.recording_info()
+
+#spect = binary_wave_rdd.map(lambda x: x[1])
+#spect = binary_wave_rdd.map( lambda x: (WAV.audio_to_melspectogram_rdd(x[1][0], x[1][1])))
+#print(spect.collect())
+#wav.wav_to_melspectogram_rdd(y,sr)
+
+#wav.recording_info()#
 #wav.recording_annotation()
+
+
+#os.rename(r'C:\\Users\\jacop\\OneDrive\\Documents\\GitHub\\LSCproject\\Database\\audio_and_txt_files\\* 1.wav',r'C:\\Users\\jacop\\OneDrive\\Documents\\GitHub\\LSCproject\\Database\\audio_and_txt_files\\*_16.wav')
+
+
+#rename all the files
+#for filename in os.listdir(Path.get_wav_file_path()):#
+    #if filename[-3:] =='txt' or filename == 'index_fileName':
+        #continue
+    #dst = filename[:-5] + ".wav"
+    
+    #os.rename(Path.get_wav_file_path()+filename, Path.get_wav_file_path()+dst)

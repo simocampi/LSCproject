@@ -1,69 +1,64 @@
-import wave, math
+import math
 import numpy as np
-import scipy.io.wavfile as wf
-from io import BytesIO
-from DataManipulation.Utils.Path import Path
+from scipy.signal import spectrogram
+import io
+import decimal
 
-#Will resample all files to the target sample rate and produce a 32bit float array
-def read_wav_file(rdd_wav, target_rate):
-    (sample_rate, data) = extract2FloatArr(wav,str_filename)
+
+def slice_with_annotation(filename, start, end, crackels, wheezes, duration, sample_rate, data , max_len):
+
+    if max_len < end - start:
+        end = start + max_len
+
+    max_ind = len(data)
+    start_ind = min(int(start * sample_rate), max_ind)
+    end_ind = min(int(end * sample_rate), max_ind)
+    return data[start_ind: end_ind], crackels, wheezes, sample_rate
+
+
+
+
     
-    if (sample_rate != target_rate):
-        ( _ , data) = resample(sample_rate, data, target_rate)
-        
-    wav.close()
-    return (target_rate, data.astype(np.float32))
-
-def resample(current_rate, data, target_rate):
-    x_original = np.linspace(0,100,len(data))
-    x_resampled = np.linspace(0,100, int(len(data) * (target_rate / current_rate)))
-    resampled = np.interp(x_resampled, x_original, data)
-    return (target_rate, resampled.astype(np.float32))
-
-def extract2FloatArr(lp_wave, str_filename):
-    (bps, channels) = bitrate_channels(lp_wave)
+def calculate_nfft(samplerate, winlen):
+    """Calculates the FFT size as a power of two greater than or equal to
+    the number of samples in a single window length.
     
-    if bps in [1,2,4]:
-        (rate, data) = wf.read(str_filename)
-        divisor_dict = {1:255, 2:32768}
-        if bps in [1,2]:
-            divisor = divisor_dict[bps]
-            data = np.divide(data, float(divisor)) #clamp to [0.0,1.0]        
-        return (rate, data)
-    
-    elif bps == 3: 
-        #24bpp wave
-        return read24bitwave(lp_wave)
-    
-    else:
-        raise Exception('Unrecognized wave format: {} bytes per sample'.format(bps))
+    Having an FFT less than the window length loses precision by dropping
+    many of the samples; a longer FFT than the window allows zero-padding
+    of the FFT buffer which is neutral in terms of frequency domain conversion.
+    :param samplerate: The sample rate of the signal we are working with, in Hz.
+    :param winlen: The length of the analysis window in seconds.
+    """
+    window_length_samples = winlen * samplerate
+    nfft = 1
+    while nfft < window_length_samples:
+        nfft *= 2
+    return nfft
 
-#Note: This function truncates the 24 bit samples to 16 bits of precision
-#Reads a wave object returned by the wave.read() method
-#Returns the sample rate, as well as the audio in the form of a 32 bit float numpy array
-#(sample_rate:float, audio_data: float[])
-def read24bitwave(lp_wave):
-    nFrames = lp_wave.getnframes()
-    buf = lp_wave.readframes(nFrames)
-    reshaped = np.frombuffer(buf, np.int8).reshape(nFrames,-1)
-    short_output = np.empty((nFrames, 2), dtype = np.int8)
-    short_output[:,:] = reshaped[:, -2:]
-    short_output = short_output.view(np.int16)
-    return (lp_wave.getframerate(), np.divide(short_output, 32768).reshape(-1))  #return numpy array to save memory via array slicing
+def hz2mel(hz):
+    """Convert a value in Hertz to Mels
+    :param hz: a value in Hz. This can also be a numpy array, conversion proceeds element-wise.
+    :returns: a value in Mels. If an array was passed in, an identical sized array is returned.
+    """
+    return 2595 * np.log10(1+hz/700.)
 
-#sample width : the number of bytes required to represent the value (se ho capito bene)
-def bitrate_channels(lp_wave):
-    bps = (lp_wave.getsampwidth() / lp_wave.getnchannels()) #bytes per sample..non credo di aver capito...un sample contiene l'informazione dei due canali?
-    return (bps, lp_wave.getnchannels())
+def mel2hz(mel):
+    """Convert a value in Mels to Hertz
+    :param mel: a value in Mels. This can also be a numpy array, conversion proceeds element-wise.
+    :returns: a value in Hertz. If an array was passed in, an identical sized array is returned.
+    """
+    return 700*(10**(mel/2595.0)-1)
 
 
+def get_shape_frame(a, win_len):
+    return a.shape[:-1] + (a.shape[-1] - win_len + 1, win_len)
 
+def get_strides_frame(a):
+    return a.strides + (a.strides[-1],)
 
-
-
-
-
-
+def append_energy(feat, energy):
+    feat[:,0] = np.log(energy)
+    return feat, energy
 
 
 
