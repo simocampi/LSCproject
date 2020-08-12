@@ -27,7 +27,7 @@ class WAV():
                                     StructField('Data', ArrayType(FloatType()), False)]
 
         # parameters in order to have an equivalent representations for each Wav file
-        self.sample_length_seconds = 6 # 5 o 6 xdlolololol
+        self.sample_length_seconds = 6 # 5 o 6
 
         # info about recording
         self.recording_info()
@@ -113,7 +113,7 @@ class WAV():
         
         # flatting in order to have for each element of the (final) rdd a frame (mfcc) with its Crackels and Wheezes labels
         label_mfcc_map = log_energy_map.flatMap(lambda x: (np.array([f + [x[crackels_idx-1]] + [x[wheezes_idx-1]] for f in x[0]])))
-        flat_mfcc_map = label_mfcc_map.map(lambda x: (np.array(x[:-2]), int(x[-2]), int(x[-1])))
+        flat_mfcc_map = label_mfcc_map.map(lambda x: (np.array(x[:-2]), int(x[-2]), int(x[-1]))) # 13 mfcc, Crackels, Wheezes
         self.rdd=flat_mfcc_map
 
 
