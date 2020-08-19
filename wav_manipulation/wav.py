@@ -57,15 +57,18 @@ class WAV():
         annotationRdd = self.annotationDataframe
 
         # join annotation and file content
+         # output: Filename, start, end crackles, wheezes, duration, sample_rate, data
         jointDataframe = annotationRdd.join(audioDataFrame, on=['Filename'], how='inner').rdd
 
         max_len = self.sample_length_seconds
 
         # slicing the data
-        slice_data = jointDataframe.map(lambda x: (x[7][min(int(x[1] * x[6]), len(x[7])):min(int((x[1] + max_len) * x[6]), len(x[7]))], x[6], x[3], x[4]) if max_len < x[2] - x[1] \
-                                                                                                                   else (x[7][min(int(x[1] * x[6]), len(x[7])):min(int(x[2] * x[6]), len(x[7]))], x[6], x[3], x[4]))
+         # data, sample_rate, crackle, wheezes
+        slice_data = jointDataframe.map(lambda x: (x[7][min(int(x[1] * x[6]), len(x[7])):min(int((x[1] + max_len) * x[6]), len(x[7]))], x[6], x[3], x[4], x[0][:3]) if max_len < x[2] - x[1] \
+                                                                                                                   else (x[7][min(int(x[1] * x[6]), len(x[7])):min(int(x[2] * x[6]), len(x[7]))], x[6], x[3], x[4], x[0][:3]))
         # padding if not long enough
-        self.rdd = slice_data.map(lambda x: (x[0] + [0 for _ in range(max_len - len(x[0]))], x[1], x[2], x[3])) # data, sample rate, Crackels, Wheezes
+        self.rdd = slice_data.map(lambda x: (x[0] + [0 for _ in range(max_len - len(x[0]))], x[1], x[2], x[3], x[4])) # data, sample rate, Crackels, Wheezes
+        slice_data.map(lambda x: (x[0] + [0 for _ in range(max_len - len(x[0]))], x[1], x[2], x[3], x[4])).toDF().show(10)
 
     # function inspired by https://github.com/jameslyons/python_speech_features/blob/master/python_speech_features/base.py
     def audio_to_mfcc(self,winlen=0.025,winstep=0.01,numcep=13, nfilt=26,lowfreq=0,highfreq=None,preemph=0.97,ceplifter=22,winfunc=lambda x:np.ones((x,))):
@@ -91,8 +94,9 @@ class WAV():
         sample_rate_idx = 1
         crackels_idx = 2
         wheezes_idx = 3
+        id_patient = 4
 
-        preprocessing_map = self.rdd.map(lambda x: (np.array(x[data_idx]), x[sample_rate_idx], x[crackels_idx], x[wheezes_idx]))
+        preprocessing_map = self.rdd.map(lambda x: (np.array(x[data_idx]), x[sample_rate_idx], x[crackels_idx], x[wheezes_idx], x[id_patient]))
 
         feat_energy_rdd = self.fbank(preprocessing_map,winlen,winstep,nfilt,nfft,lowfreq,preemph,winfunc, data_idx, sample_rate_idx, crackels_idx, wheezes_idx)
 
