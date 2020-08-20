@@ -39,8 +39,10 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 
 wav = WAV(spark_session, spark_context)
 
-wav.get_DataFrame().show(5)
-test(wav.get_Rdd)
+#wav.get_DataFrame().show(5)
+pippo = wav.get_Rdd()
+pippo.toDF().show(3)
+test(wav.get_Rdd().toDF(['Data','Wheezes','Crackels', 'Diagnosis']))
 #print(audio_rdd.printSchema())
 #print('\n\n---------------------------------------------------------------------\n\n', audio_rdd.take(1))
 
