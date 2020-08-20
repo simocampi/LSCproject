@@ -38,19 +38,19 @@ class WAV():
         self.read_wav()
         self.split_and_pad()
         self.audio_to_mfcc()
+        self.associate_labels()
 
-        # to_test
-        self.get_labels()
-
-    def get_DataFrame(self):
+    def get_DataFrame(self,columns=['Data','Wheezes','Crackels','Patient_number']):
         rdd = self.rdd.map(lambda x: ( [float(i) for i in x[0] ], int(x[1]), int(x[2]), int(x[3])))
-        columns = ['Data','Wheezes','Crackels','Patient_number']
         return rdd.toDF(columns)
         
     def get_Rdd(self):
         return self.rdd
+    
+    def get_labels_df(self):
+        return self.labels
 
-    def get_labels(self):
+    def associate_labels(self):
         patient_diagnosis = PatientDiagnosis(self.spark_session)
         df_patient_diagnosis=patient_diagnosis.get_DataFrame()
         #df_patient_diagnosis.show(5)
@@ -58,8 +58,8 @@ class WAV():
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
         joint_df = joint_df.drop('Patient_Number')
         joint_df.show(10)
-
-        self.rdd = joint_df.rdd
+        self.labels = joint_df
+        #self.rdd.toDF().show(2)
 
     # return an rdd with data and corresponding path
     def read_wav(self):
