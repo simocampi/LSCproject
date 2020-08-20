@@ -53,7 +53,7 @@ class WAV():
     def get_labels(self):
         patient_diagnosis = PatientDiagnosis(self.spark_session)
         df_patient_diagnosis=patient_diagnosis.get_DataFrame()
-        df_patient_diagnosis.show(5)
+        #df_patient_diagnosis.show(5)
         df_features = self.get_DataFrame()
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
         joint_df = joint_df.drop('Patient_Number')
