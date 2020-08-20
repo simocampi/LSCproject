@@ -59,8 +59,7 @@ class WAV():
         joint_df = joint_df.drop('Patient_Number')
         joint_df.show(10)
 
-        #self.rdd = joint_df.rdd
-        #self.rdd.toDF().show(2)
+        self.rdd = joint_df.rdd
 
     # return an rdd with data and corresponding path
     def read_wav(self):
