@@ -56,6 +56,7 @@ class WAV():
         df_patient_diagnosis.show(5)
         df_features = self.get_DataFrame()
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
+        joint_df = joint_df.drop(['Patient_Number'])
         joint_df.show(7)
 
     # return an rdd with data and corresponding path
