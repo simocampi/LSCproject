@@ -10,6 +10,7 @@ from Utils.utils_wav import *
 from DataManipulation.Utils.Path import Path
 import librosa as lb
 from scipy.fftpack import dct
+from DataManipulation.PatientDiagnosis import PatientDiagnosis
 
 def round_half_up(number):
     return int(decimal.Decimal(number).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP))
@@ -38,11 +39,18 @@ class WAV():
         self.split_and_pad()
         self.audio_to_mfcc()
 
+        self.get_labels()
+
     def get_DataFrame(self):
         return self.rdd.toDF()
         
     def get_Rdd(self):
         return self.rdd
+
+    def get_labels(self):
+        patient_diagnosis = PatientDiagnosis(self.spark_session)
+        df_patient_diagnosis=patient_diagnosis.get_DataFrame()
+        df_patient_diagnosis.show(5)
 
     # return an rdd with data and corresponding path
     def read_wav(self):
@@ -68,7 +76,6 @@ class WAV():
                                                                                                                    else (x[7][min(int(x[1] * x[6]), len(x[7])):min(int(x[2] * x[6]), len(x[7]))], x[6], x[3], x[4], int(x[0][:3])))
         # padding if not long enough
         self.rdd = slice_data.map(lambda x: (x[0] + [0 for _ in range(max_len - len(x[0]))], x[1], x[2], x[3], x[4])) # data, sample rate, Crackels, Wheezes
-        slice_data.map(lambda x: (x[0] + [0 for _ in range(max_len - len(x[0]))], x[1], x[2], x[3], x[4])).toDF().show(10)
 
     # function inspired by https://github.com/jameslyons/python_speech_features/blob/master/python_speech_features/base.py
     def audio_to_mfcc(self,winlen=0.025,winstep=0.01,numcep=13, nfilt=26,lowfreq=0,highfreq=None,preemph=0.97,ceplifter=22,winfunc=lambda x:np.ones((x,))):
