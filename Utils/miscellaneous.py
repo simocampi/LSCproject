@@ -14,12 +14,13 @@ def divide_in_label_and_feature(rdd):
     df = spark.createDataFrame(input_data, ["label", "features"])
 
 
-def OneHotEncoder(rdd):
+def OneHotEncoder(df):
 
     indexer = StringIndexer(inputCol="Diagnosis", outputCol="diagnosis_index")
     indexed = indexer.fit(df).transform(df)
     indexed.show()
     pass
 
-def test(rdd):
-    OneHotEncoder(rdd)
+def test(df):
+    print("CI SONOOOOOOOOOOO")
+    OneHotEncoder(df)
