@@ -5,7 +5,12 @@ def split_train_test(all_data):
 
 
 def divide_in_label_and_feature(rdd):
+    label_pos = 8               #DA AGGIUSTARE
 
     input_data = rdd.map(lambda x: (x[0], DenseVector(x[1:])))
 
     df = spark.createDataFrame(input_data, ["label", "features"])
+
+
+def OneHotEncoder(rdd):
+    pass
