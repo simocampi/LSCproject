@@ -40,7 +40,7 @@ wav = WAV(spark_session, spark_context)
 
 audio_rdd = wav.get_Rdd()
 #print(audio_rdd.printSchema())
-print( audio_rdd.take(1))
+print('\n\n---------------------------------------------------------------------\n\n', audio_rdd.take(1))
 
 
 
