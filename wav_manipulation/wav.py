@@ -39,10 +39,13 @@ class WAV():
         self.split_and_pad()
         self.audio_to_mfcc()
 
+        # to_test
         self.get_labels()
 
     def get_DataFrame(self):
-        return self.rdd.toDF()
+        rdd = self.rdd.map(lambda x: ( [float(i) for i in x[0] ], int(x[1]), int(x[2]), int(x[3])))
+        columns = ['Data','Wheezes','Crackels','Patient_number']
+        return rdd.toDF(columns)
         
     def get_Rdd(self):
         return self.rdd
@@ -51,6 +54,9 @@ class WAV():
         patient_diagnosis = PatientDiagnosis(self.spark_session)
         df_patient_diagnosis=patient_diagnosis.get_DataFrame()
         df_patient_diagnosis.show(5)
+        df_features = self.get_DataFrame()
+        joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
+        joint_df.show(7)
 
     # return an rdd with data and corresponding path
     def read_wav(self):
@@ -129,7 +135,6 @@ class WAV():
         
         # flatting in order to have for each element of the (final) rdd a frame (mfcc) with its Crackels and Wheezes labels
         label_mfcc_map = log_energy_map.flatMap(lambda x: (np.array([f + [x[crackels_idx-1]] + [x[wheezes_idx-1]]+ [x[id_patient-1]] for f in x[0]])))
-        print(label_mfcc_map.take(1))
         flat_mfcc_map = label_mfcc_map.map(lambda x: (np.array(x[:-3]), int(x[-3]), int(x[-2]), int(x[-1]))) # 13 mfcc, Crackels, Wheezes
         self.rdd=flat_mfcc_map
 
