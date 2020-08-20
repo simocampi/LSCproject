@@ -7,6 +7,7 @@ from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
 
+from Utils.miscellaneous import test
 
 conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
@@ -38,7 +39,10 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 
 wav = WAV(spark_session, spark_context)
 
-wav.get_DataFrame().show(5)
+#wav.get_DataFrame().show(5)
+pippo = wav.get_Rdd()
+pippo.toDF().show(3)
+#test(wav.get_Rdd().toDF(['Data','Wheezes','Crackels', 'Diagnosis']))
 #print(audio_rdd.printSchema())
 #print('\n\n---------------------------------------------------------------------\n\n', audio_rdd.take(1))
 

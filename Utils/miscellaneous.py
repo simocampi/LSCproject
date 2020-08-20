@@ -1,3 +1,5 @@
+from pyspark.ml.feature import StringIndexer
+
 def split_train_test(all_data):
     train_data, test_data = scaled_df.randomSplit([.8,.2],seed=1234)
 
@@ -12,5 +14,13 @@ def divide_in_label_and_feature(rdd):
     df = spark.createDataFrame(input_data, ["label", "features"])
 
 
-def OneHotEncoder(rdd):
+def OneHotEncoder(df):
+
+    indexer = StringIndexer(inputCol="Diagnosis", outputCol="diagnosis_index")
+    indexed = indexer.fit(df).transform(df)
+    indexed.show()
     pass
+
+def test(df):
+    print("CI SONOOOOOOOOOOO")
+    OneHotEncoder(df)
