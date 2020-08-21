@@ -14,7 +14,7 @@ def split_train_test(labeled_point_rdd, training_data_ratio=0.7):
     #return train_data, test_data
 
 #divide the data into features and labels and return an RDD 
-def get_LabeledPoint(data, label, features):    
+def get_data_label(data, label, features):    
     data = list_to_vector(data, 'Data')
 
     assembler = VectorAssembler(
@@ -22,11 +22,14 @@ def get_LabeledPoint(data, label, features):
         outputCol="features")
     data = assembler.transform(data)
     data.show(6)
-
+    
+    labelIndexer = StringIndexer(inputCol="Diagnosis", outputCol="indexedLabel").fit(data)
+    featureIndexer = VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=4).fit(data)
+    data.show(8)
     input_data = data.select(col(label).alias('label'), data['features'])
     #print(input_data.rdd.map(lambda x: x[1]).take(1))
     # dictionary to associate a number to each 
-    dict = {'Bronchiectasis':0, 'Bronchiolitis':1, 'COPD':2, 'Healthy':3, 'Pneumonia':4, 'URTI':5}
+    #dict = {'Bronchiectasis':0, 'Bronchiolitis':1, 'COPD':2, 'Healthy':3, 'Pneumonia':4, 'URTI':5}
    
     #input_data_rdd = input_data.rdd.map(lambda x: ( float( dict.get(x[0])), list( x[1].toArray() ) ) )
     #labeled_point_rdd = input_data_rdd.map(lambda x: LabeledPoint( x[0], Vectors.dense( x[1])))
