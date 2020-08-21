@@ -6,10 +6,11 @@ from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
 from pyspark.sql.functions import udf
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.ml import linalg
+from pyspark.sql import Row
 
 def split_train_test(labeled_point_rdd, training_data_ratio=0.7):
-    #train_data, test_data = scaled_df.randomSplit([.8,.2],seed=1234)
-    splits = [training_data_ratio, 1.0 - training_data_ratio]
+    train_data, test_data = scaled_df.randomSplit([.8,.2],seed=1234)
+    #splits = [training_data_ratio, 1.0 - training_data_ratio]
     
     #return train_data, test_data
 
@@ -21,21 +22,24 @@ def get_data_label(data, label, features):
         inputCols=features,
         outputCol="features")
     data = assembler.transform(data)
-    data.show(6)
+    #data.show(6)
     
-    labelIndexer = StringIndexer(inputCol="Diagnosis", outputCol="indexedLabel").fit(data)
-    featureIndexer = VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=4).fit(data)
-    data.show(8)
+    
+    #data.show(8)
     input_data = data.select(col(label).alias('label'), data['features'])
     #print(input_data.rdd.map(lambda x: x[1]).take(1))
     # dictionary to associate a number to each 
-    #dict = {'Bronchiectasis':0, 'Bronchiolitis':1, 'COPD':2, 'Healthy':3, 'Pneumonia':4, 'URTI':5}
+    dict = {'Bronchiectasis':0, 'Bronchiolitis':1, 'COPD':2, 'Healthy':3, 'Pneumonia':4, 'URTI':5}
    
-    #input_data_rdd = input_data.rdd.map(lambda x: ( float( dict.get(x[0])), list( x[1].toArray() ) ) )
-    #labeled_point_rdd = input_data_rdd.map(lambda x: LabeledPoint( x[0], Vectors.dense( x[1])))
+    input_data_rdd = input_data.rdd.map(lambda x: ( float( dict.get(x[0])), x[1] ) )
+    #print( input_data_rdd.map(lambda x: type(x[1]).take(1)))
+   # labeled_point_rdd = input_data_rdd.map(lambda x: LabeledPoint( x[0], Vectors.dense( x[1])))
+
+    input_data_rdd.toDF(['l','f']).printSchema()
 
     #print( labeled_point_rdd.take(1))
     #return labeled_point_rdd
+    #return data
     
 
 
@@ -58,4 +62,4 @@ def OneHotEncoder(df):
 
 def test(df):
     #OneHotEncoder(df)
-    get_LabeledPoint(df,label='Diagnosis', features=['Data','Wheezes','Crackels'])
+    get_data_label(df,label='Diagnosis', features=['Data','Wheezes','Crackels'])
