@@ -8,6 +8,7 @@ from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
 
 from Utils.miscellaneous import test
+from Classifier import RandomForest
 
 conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
@@ -40,13 +41,13 @@ rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_chil
 wav = WAV(spark_session, spark_context)
 
 #wav.get_DataFrame().show(5)
-wav.get_labels_df().show(4)
-test(wav.get_labels_df())
+wav.get_data_labeled_df().show(4)
+test(wav.get_data_labeled_df())
 #test(wav.get_Rdd().toDF(['Data','Wheezes','Crackels', 'Diagnosis']))
 #print(audio_rdd.printSchema())
 #print('\n\n---------------------------------------------------------------------\n\n', audio_rdd.take(1))
 
-
+random_forest = RandomForest() 
 
 
 #spect = binary_wave_rdd.map(lambda x: x[1])

@@ -1,25 +1,40 @@
 from pyspark.ml.feature import StringIndexer
 from pyspark.sql.functions import *
 from pyspark.ml.feature import VectorAssembler
-from pyspark.ml.linalg import Vectors, VectorUDT
+from pyspark.ml.linalg import Vectors, VectorUDT, Vector
+from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
 from pyspark.sql.functions import udf
+from pyspark.mllib.regression import LabeledPoint
+from pyspark.ml import linalg
 
-def split_train_test(all_data):
-    train_data, test_data = scaled_df.randomSplit([.8,.2],seed=1234)
+def split_train_test(labeled_point_rdd, training_data_ratio=0.7):
+    #train_data, test_data = scaled_df.randomSplit([.8,.2],seed=1234)
+    splits = [training_data_ratio, 1.0 - training_data_ratio]
+    
+    #return train_data, test_data
 
-    return train_data, test_data
-
-
-def divide_in_label_and_feature(data, label, features):    
+#divide the data into features and labels and return an RDD 
+def get_LabeledPoint(data, label, features):    
     data = list_to_vector(data, 'Data')
 
     assembler = VectorAssembler(
         inputCols=features,
         outputCol="features")
     data = assembler.transform(data)
+    data.show(6)
 
     input_data = data.select(col(label).alias('label'), data['features'])
-    input_data.show(2)
+    #print(input_data.rdd.map(lambda x: x[1]).take(1))
+    # dictionary to associate a number to each 
+    dict = {'Bronchiectasis':0, 'Bronchiolitis':1, 'COPD':2, 'Healthy':3, 'Pneumonia':4, 'URTI':5}
+   
+    #input_data_rdd = input_data.rdd.map(lambda x: ( float( dict.get(x[0])), list( x[1].toArray() ) ) )
+    #labeled_point_rdd = input_data_rdd.map(lambda x: LabeledPoint( x[0], Vectors.dense( x[1])))
+
+    #print( labeled_point_rdd.take(1))
+    #return labeled_point_rdd
+    
+
 
 def list_to_vector(df, col_name):
     list_to_vector_udf = udf(lambda l: Vectors.dense(l), VectorUDT())
@@ -34,9 +49,10 @@ def list_to_vector(df, col_name):
 
 def OneHotEncoder(df):
     dict = {'Bronchiectasis':0, 'Bronchiolitis':1, 'COPD':2, 'Healthy':3, 'Pneumonia':4, 'URTI':5}
-    df = df.select('Diagnosis').map(lambda x: dict.get(x))
-    df.show()
-    pass
+    df = df.rdd.map(lambda x: dict.get(x[0]))
+    print(df.take(1))
+    
 
 def test(df):
-    divide_in_label_and_feature(df,label='Diagnosis', features=['Data','Wheezes','Crackels'])
+    #OneHotEncoder(df)
+    get_LabeledPoint(df,label='Diagnosis', features=['Data','Wheezes','Crackels'])

@@ -47,8 +47,11 @@ class WAV():
     def get_Rdd(self):
         return self.rdd
     
-    def get_labels_df(self):
-        return self.labels
+    def get_data_labeled_df(self,rdd=False):
+        if rdd:
+            return self.data_labeled.rdd
+        else:
+            return self.data_labeled
 
     def associate_labels(self):
         patient_diagnosis = PatientDiagnosis(self.spark_session)
@@ -58,7 +61,7 @@ class WAV():
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
         joint_df = joint_df.drop('Patient_Number')
         joint_df.show(10)
-        self.labels = joint_df
+        self.data_labeled = joint_df
         #self.rdd.toDF().show(2)
 
     # return an rdd with data and corresponding path
