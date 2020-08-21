@@ -21,7 +21,7 @@ class RandomForest():
     def data_preprocessing(self, training_data_ratio=0.7, random_seeds=13579):
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
-        data=get_data_label(df,label='Diagnosis', features=['Data','Wheezes','Crackels'])
+        data=get_data_label(data_labeled,label='Diagnosis', features=['Data','Wheezes','Crackels'])
 
         # Index labels, adding metadata to the label column.
         # Fit on whole dataset to include all labels in index.
