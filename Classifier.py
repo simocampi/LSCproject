@@ -1,12 +1,12 @@
-from pyspark.mllib.tree import RandomForest, RandomForestModel
 from pyspark.mllib.util import MLUtils
 from pyspark.mllib.regression import LabeledPoint
 from wav_manipulation.wav import *
-from Utils.miscellaneous import *
-from wav_manipulation.wav import *
+from Utils.miscellaneous import split_data_label, split_train_test
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-from pyspark.ml import Pipeline
+
 
 class RandomForest():
 
@@ -15,25 +15,55 @@ class RandomForest():
         self.spark_context = spark_context
 
         #test
-        self.data_preprocessing()
+        self.train()
             
     
-    def data_preprocessing(self, training_data_ratio=0.7, random_seeds=13579):
+    def train(self):
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
-        data=get_data_label(data_labeled,label='Diagnosis', features=['Data','Wheezes','Crackels'])
-        exit(1)
+        data=split_data_label(data_labeled,label='indexedDiagnosis', features=['Data','Wheezes','Crackels'])
+        
         # Index labels, adding metadata to the label column.
         # Fit on whole dataset to include all labels in index.
-        labelIndexer = StringIndexer(inputCol="Diagnosis", outputCol="indexedLabel").fit(data)
+        print('StringIndexer')
+        #labelIndexer = StringIndexer(inputCol="label", outputCol="indexedLabel").fit(data)
+
         # Automatically identify categorical features, and index them.
         # Set maxCategories so features with > 4 distinct values are treated as continuous.
-        featureIndexer = VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=4).fit(data)
-        splits= [training_data_ratio, 1.0 - training_data_ratio]
-        training_data, test_data = data.randomSplit(splits, random_seeds)
-        training_data.show(5)
+        print('VectorIndexer')
+        featureIndexer = VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=6).fit(data)
+        
+        # Split the data into training and test sets
+        print('split_train_test')
+        training_data, test_data = split_train_test(labeled_point)
+        # Train a RandomForest model.
+        print('RandomForestClassifier')
+        rf = RandomForestClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures", numTrees=10)
 
-        return training_data, test_data, labelIndexer, featureIndexer
+        # Convert indexed labels back to original labels.
+        labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels=labelIndexer.labels)       
+        
+        # Chain indexers and forest in a Pipeline
+        pipeline = Pipeline(stages=[labelIndexer, featureIndexer, rf, labelConverter])
+
+        # Train model.  This also runs the indexers.
+        model = pipeline.fit(trainingData)
+
+        # Make predictions.
+        predictions = model.transform(testData)
+
+        # Select example rows to display.
+        predictions.select("predictedLabel", "label", "features").show(5)
+
+        return predictions
     
+    def model_evalation(self,predictions):
+        # Select (prediction, true label) and compute test error
+        evaluator = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="accuracy")
+        accuracy = evaluator.evaluate(predictions)
+        print("Test Error = %g" % (1.0 - accuracy))
+
+        rfModel = model.stages[2]
+        print(rfModel)  # summary only
     
         

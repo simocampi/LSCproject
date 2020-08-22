@@ -11,6 +11,7 @@ from DataManipulation.Utils.Path import Path
 import librosa as lb
 from scipy.fftpack import dct
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
+from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
 
 def round_half_up(number):
     return int(decimal.Decimal(number).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP))
@@ -56,10 +57,14 @@ class WAV():
     def associate_labels(self):
         patient_diagnosis = PatientDiagnosis(self.spark_session)
         df_patient_diagnosis=patient_diagnosis.get_DataFrame()
-        #df_patient_diagnosis.show(5)
+
+        indexer = StringIndexer(inputCol="Diagnosis", outputCol="indexedDiagnosis")
+        df_patient_diagnosis = indexer.fit(df_patient_diagnosis).transform(df_patient_diagnosis)
+        df_patient_diagnosis.drop('Patient_Number').dropDuplicates(['indexedDiagnosis']).show() #DA SALVARE DA QUALCHE PARTE
+
         df_features = self.get_DataFrame()
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
-        joint_df = joint_df.drop('Patient_Number')
+        joint_df = joint_df.drop('Patient_Number', 'Diagnosis')
         joint_df.show(10)
         self.data_labeled = joint_df
         #self.rdd.toDF().show(2)
