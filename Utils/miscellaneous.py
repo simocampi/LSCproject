@@ -35,7 +35,7 @@ def get_data_label(data, label, features):
     input_data_rdd.toDF(['l','f']).printSchema()
     print("PASSATO!!!!!!!!!!!!!!")
 
-    transformed_df = input_data_rdd.rdd.map(lambda x: LabeledPoint(x[0], Vectors.dense(x[1])))
+    transformed_df = input_data_rdd.map(lambda x: LabeledPoint(x[0], Vectors.dense(x[1])))
     transformed_df.toDF().printSchema()
     print("PASSATO!!!!!!!!!!!!!!")
 
