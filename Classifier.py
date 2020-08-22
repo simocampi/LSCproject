@@ -22,7 +22,7 @@ class RandomForest():
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
         data=get_data_label(data_labeled,label='Diagnosis', features=['Data','Wheezes','Crackels'])
-
+        exit(1)
         # Index labels, adding metadata to the label column.
         # Fit on whole dataset to include all labels in index.
         labelIndexer = StringIndexer(inputCol="Diagnosis", outputCol="indexedLabel").fit(data)

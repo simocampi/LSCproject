@@ -47,7 +47,7 @@ test(wav.get_data_labeled_df())
 #print(audio_rdd.printSchema())
 #print('\n\n---------------------------------------------------------------------\n\n', audio_rdd.take(1))
 
-random_forest = RandomForest(spark_session, spark_context) 
+#random_forest = RandomForest(spark_session, spark_context) 
 
 
 #spect = binary_wave_rdd.map(lambda x: x[1])

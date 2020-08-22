@@ -6,7 +6,11 @@ from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
 from pyspark.sql.functions import udf
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.ml import linalg
+from pyspark.ml import linalg as ml_linalg
 from pyspark.sql import Row
+from pyspark.ml.linalg import Vector as MLVector, Vectors as MLVectors
+from pyspark.mllib.linalg import Vector as MLLibVector, Vectors as MLLibVectors
+from pyspark.mllib.regression import  LabeledPoint
 
 def split_train_test(labeled_point_rdd, training_data_ratio=0.7):
     train_data, test_data = scaled_df.randomSplit([.8,.2],seed=1234)
@@ -35,15 +39,23 @@ def get_data_label(data, label, features):
     input_data_rdd.toDF(['l','f']).printSchema()
     print("PASSATO!!!!!!!!!!!!!!")
 
-    transformed_df = input_data_rdd.map(lambda x: LabeledPoint(x[0], Vectors.dense(x[1])))
-    transformed_df.toDF().printSchema()
+    transformed_df = input_data_rdd.map(lambda x: LabeledPoint(x[0], Vectors.dense(as_mllib(x[1]))))
+    #transformed_df.toDF().printSchema()
+    print(type(transformed_df))
+    transformed_df.map(lambda x: x.split(",")).toDF().printSchema()
     print("PASSATO!!!!!!!!!!!!!!")
 
     #print( labeled_point_rdd.take(1))
     #return labeled_point_rdd
     #return data
     
-
+def as_mllib(v):
+    if isinstance(v, ml_linalg.SparseVector):
+        return MLLibVectors.sparse(v.size, v.indices, v.values)
+    elif isinstance(v, ml_linalg.DenseVector):
+        return MLLibVectors.dense(v.toArray())
+    else:
+        raise TypeError("Unsupported type: {0}".format(type(v)))
 
 def list_to_vector(df, col_name):
     list_to_vector_udf = udf(lambda l: Vectors.dense(l), VectorUDT())
