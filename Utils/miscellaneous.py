@@ -31,11 +31,13 @@ def get_data_label(data, label, features):
     # dictionary to associate a number to each 
     dict = {'Bronchiectasis':0, 'Bronchiolitis':1, 'COPD':2, 'Healthy':3, 'Pneumonia':4, 'URTI':5}
    
-    input_data_rdd = input_data.rdd.map(lambda x: ( float( dict.get(x[0])), x[1] ) )
-    #print( input_data_rdd.map(lambda x: type(x[1]).take(1)))
-   # labeled_point_rdd = input_data_rdd.map(lambda x: LabeledPoint( x[0], Vectors.dense( x[1])))
-
+    input_data_rdd = input_data.rdd.map(lambda x: ( float( dict.get(x[0])), x[1] ))
     input_data_rdd.toDF(['l','f']).printSchema()
+    print("PASSATO!!!!!!!!!!!!!!")
+
+    transformed_df = input_data_rdd.rdd.map(lambda x: LabeledPoint(x[0], Vectors.dense(x[1])))
+    transformed_df.toDF().printSchema()
+    print("PASSATO!!!!!!!!!!!!!!")
 
     #print( labeled_point_rdd.take(1))
     #return labeled_point_rdd
