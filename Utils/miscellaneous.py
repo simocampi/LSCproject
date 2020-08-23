@@ -20,28 +20,15 @@ def split_train_test(labeled_point_rdd, training_data_ratio=0.7, random_seeds=13
 #divide the data into features and labels and return an RDD 
 def split_data_label(data, label, features):    
     data = list_to_vector(data, 'Data')
-
+    data.printSchema()
     assembler = VectorAssembler(
         inputCols=features,
         outputCol="features")
-    data = assembler.transform(data)
+    #data = assembler.transform(data)
     
-    input_data = data.select(col(label).alias('label'), data['features'])
-    return input_data
-    
-    '''
-    # dictionary to associate a number to each 
-    dict = {'Bronchiectasis':0, 'Bronchiolitis':1, 'COPD':2, 'Healthy':3, 'Pneumonia':4, 'URTI':5}
-   
-    input_data_rdd = input_data.rdd.map(lambda x: ( float( dict.get(x[0])), x[1] ))
-    input_data_rdd.toDF(['l','f']).printSchema()
+    #input_data = data.select(col(label).alias('label'), data['features'])
+    return assembler, data
 
-    transformed_df = input_data_rdd.map(lambda x: LabeledPoint(x[0], Vectors.dense(as_mllib(x[1]))))
-    print(type(transformed_df))
-    print("PASSATO!!!!!!!!!!!!!!")
-
-    return transformed_df
-    '''
 
 def as_mllib(v):
     if isinstance(v, ml_linalg.SparseVector):

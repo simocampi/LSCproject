@@ -48,6 +48,8 @@ wav = WAV(spark_session, spark_context)
 #print('\n\n---------------------------------------------------------------------\n\n', audio_rdd.take(1))
 
 random_forest = RandomForest(spark_session, spark_context) 
+predictions, model = random_forest.train()
+random_forest.model_evalation(predictions=predictions,model=model)
 
 
 #spect = binary_wave_rdd.map(lambda x: x[1])

@@ -57,7 +57,8 @@ class WAV():
     def associate_labels(self):
         patient_diagnosis = PatientDiagnosis(self.spark_session)
         df_patient_diagnosis=patient_diagnosis.get_DataFrame()
-
+        
+        print('StringIndexer')
         indexer = StringIndexer(inputCol="Diagnosis", outputCol="indexedDiagnosis")
         df_patient_diagnosis = indexer.fit(df_patient_diagnosis).transform(df_patient_diagnosis)
         df_patient_diagnosis.drop('Patient_Number').dropDuplicates(['indexedDiagnosis']).show() #DA SALVARE DA QUALCHE PARTE
