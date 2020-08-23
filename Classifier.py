@@ -6,6 +6,7 @@ from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from datetime import datetime
 
 
 
@@ -33,29 +34,37 @@ class RandomForest():
         #featureIndexer = VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=15).fit(data)
         
         # Split the data into training and test sets
-        print('split_train_test')
+        print('split_train_test...', datetime.now())
         training_data, test_data = split_train_test(data)
         # Train a RandomForest model.
-        print('RandomForestClassifier')
-        rf = RandomForestClassifier(labelCol="indexedDiagnosis", featuresCol="features", numTrees=10)
+        model = None
+        try:
+            print('Load model..')
+            model = PipelineModel.load("/home/user24/LSCproject/model")
 
-        # Convert indexed labels back to original labels.
-        #labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels=data.labels)       
+        except FileNotFoundError:
+            print('RandomForestClassifier...', datetime.now())
+            rf = RandomForestClassifier(labelCol="indexedDiagnosis", featuresCol="features", numTrees=10)       
+            # Convert indexed labels back to original labels.
+            #labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels=data.labels)       
+
+            # Chain indexers and forest in a Pipeline
+            print('Pipeline...',datetime.now())
+            pipeline = Pipeline(stages=[assembler, rf])     
+            # Train model.  This also runs the indexers.
+            print('Fit...', datetime.now())
+            model = pipeline.fit(training_data)     
+            print('Save model..')
+            model.save("/home/user24/LSCproject/model")
+
         
-        # Chain indexers and forest in a Pipeline
-        pipeline = Pipeline(stages=[assembler, rf])
-
-        # Train model.  This also runs the indexers.
-        model = pipeline.fit(training_data)
-
-        model.save("/home/user24/LSCproject")
-        sameModel = PipelineModel.load("target/tmp/myRandomForestClassificationModel")
 
         # Make predictions.
+        print('Prediction...',datetime.now())
         predictions = model.transform(test_data)
 
         # Select example rows to display.
-        predictions.select("predictedLabel", "label", "features").show(5)
+        predictions.select("prediction", "label", "features").show(5)
 
         return predictions, model
     
@@ -67,5 +76,7 @@ class RandomForest():
 
         rfModel = model.stages[2]
         print(rfModel)  # summary only
+    
+
     
         
