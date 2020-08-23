@@ -6,6 +6,9 @@ from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.feature import IndexToString
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from datetime import datetime
+from pyspark.ml.tuning import ParamGridBuilder
+from pyspark.ml.tuning import CrossValidator
+import numpy as np
 
 
 
@@ -15,8 +18,7 @@ class RandomForest():
         self.spark_session = spark_session
         self.spark_context = spark_context
 
-            
-    
+              
     def train(self):
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
@@ -42,7 +44,14 @@ class RandomForest():
             pipeline = Pipeline(stages=[assembler, rf])     
             # Train model.  This also runs the indexers.
             print('Fit...', datetime.now())
-            model = pipeline.fit(training_data)     
+            model = pipeline.fit(training_data) 
+
+            
+            #---------------SE FUNZIONA SOSTISTURE CON LA RIGA SOPRA CON QUELLO COMMENTATO SOTTO ----------------
+            #crossval = self.crossvalidation(rf=rf, pipeline=pipeline)
+            #model = crossval.fit(training_data)
+            #----------------------------------------------------------------------------------------------------
+            
             print('Save model..')
             model.save("/home/user24/LSCproject/model")
 
@@ -51,7 +60,7 @@ class RandomForest():
         # Make predictions.
         print('Prediction...\       ',datetime.now())
         predictions = model.transform(test_data)
-
+    
         # Select example rows to display.
         predictions.select("prediction", "label", "features").show(5)
 
@@ -66,6 +75,24 @@ class RandomForest():
 
         rfModel = model.stages[2]
         print(rfModel)  # summary only
+    
+    def crossvalidation(self,rf, pipeline):
+        
+        paramGrid = ParamGridBuilder() \
+        .addGrid(rf.numTrees, [int(x) for x in np.linspace(start = 10, stop = 50, num = 3)]) \
+        .addGrid(rf.maxDepth, [int(x) for x in np.linspace(start = 5, stop = 25, num = 3)]) \
+        .build()
+
+        crossval = CrossValidator(estimator=pipeline,
+                          estimatorParamMaps=paramGrid,
+                          evaluator=MulticlassClassificationEvaluator(),
+                          numFolds=3)
+
+        return crossval
+
+
+    
+
     
 
     
