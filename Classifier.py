@@ -31,9 +31,9 @@ class RandomForest():
         model = None
         try:
             print('Load model..')
-            model = PipelineModel.load("/home/user24/LSCproject/model")
+            model = PipelineModel.load("hdfs://master:9000/user/user24/model")
 
-        except FileNotFoundError:
+        except ( FileNotFoundError, InvalidInputExeption) :
             print('RandomForestClassifier...', datetime.now())
             rf = RandomForestClassifier(labelCol="indexedDiagnosis", featuresCol="features", numTrees=10)       
             # Convert indexed labels back to original labels.
@@ -51,14 +51,14 @@ class RandomForest():
             #crossval = self.crossvalidation(rf=rf, pipeline=pipeline)
             #model = crossval.fit(training_data)
             #----------------------------------------------------------------------------------------------------
-            
+
             print('Save model..')
-            model.save("/home/user24/LSCproject/model")
+            model.save("hdfs://master:9000/user/user24/model")
 
         
 
         # Make predictions.
-        print('Prediction...\       ',datetime.now())
+        print('Prediction...',datetime.now())
         predictions = model.transform(test_data)
     
         # Select example rows to display.

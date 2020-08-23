@@ -7,7 +7,6 @@ from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
 
-from Utils.miscellaneous import test
 from Classifier import RandomForest
 
 conf = SparkConf().setAppName('LSC_Project')
