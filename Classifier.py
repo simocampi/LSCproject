@@ -33,7 +33,7 @@ class RandomForest():
             print('Load model..')
             model = PipelineModel.load("hdfs://master:9000/user/user24/model")
 
-        except ( FileNotFoundError, InvalidInputExeption) :
+        except :
             print('RandomForestClassifier...', datetime.now())
             rf = RandomForestClassifier(labelCol="indexedDiagnosis", featuresCol="features", numTrees=10)       
             # Convert indexed labels back to original labels.
@@ -52,7 +52,7 @@ class RandomForest():
             #model = crossval.fit(training_data)
             #----------------------------------------------------------------------------------------------------
 
-            print('Save model..')
+            print('Save model..', datetime.now())
             model.save("hdfs://master:9000/user/user24/model")
 
         
