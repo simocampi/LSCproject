@@ -1,10 +1,9 @@
 from pyspark.mllib.util import MLUtils
-from pyspark.mllib.regression import LabeledPoint
 from wav_manipulation.wav import *
 from Utils.miscellaneous import split_data_label, split_train_test
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.classification import RandomForestClassifier
-from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
+from pyspark.ml.feature import IndexToString
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from datetime import datetime
 
@@ -22,17 +21,7 @@ class RandomForest():
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
         assembler,data=split_data_label(data_labeled,label='indexedDiagnosis', features=['Data','Wheezes','Crackels'])
-        
-        # Index labels, adding metadata to the label column.
-        # Fit on whole dataset to include all labels in index.
-        
-        #labelIndexer = StringIndexer(inputCol="label", outputCol="indexedLabel").fit(data)
-
-        # Automatically identify categorical features, and index them.
-        # Set maxCategories so features with > 4 distinct values are treated as continuous.
-        #print('VectorIndexer')
-        #featureIndexer = VectorIndexer(inputCol="features", outputCol="indexedFeatures", maxCategories=15).fit(data)
-        
+ 
         # Split the data into training and test sets
         print('split_train_test...', datetime.now())
         training_data, test_data = split_train_test(data)
@@ -49,7 +38,7 @@ class RandomForest():
             #labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels=data.labels)       
 
             # Chain indexers and forest in a Pipeline
-            print('Pipeline...',datetime.now())
+            print('Pipeline...\       ',datetime.now())
             pipeline = Pipeline(stages=[assembler, rf])     
             # Train model.  This also runs the indexers.
             print('Fit...', datetime.now())
@@ -60,7 +49,7 @@ class RandomForest():
         
 
         # Make predictions.
-        print('Prediction...',datetime.now())
+        print('Prediction...\       ',datetime.now())
         predictions = model.transform(test_data)
 
         # Select example rows to display.
@@ -70,6 +59,7 @@ class RandomForest():
     
     def model_evalation(self,predictions,model):
         # Select (prediction, true label) and compute test error
+        print('evaluation')
         evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
         accuracy = evaluator.evaluate(predictions)
         print("Test Error = %g" % (1.0 - accuracy))

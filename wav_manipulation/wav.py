@@ -11,7 +11,7 @@ from DataManipulation.Utils.Path import Path
 import librosa as lb
 from scipy.fftpack import dct
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
-from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
+from pyspark.ml.feature import StringIndexer
 
 def round_half_up(number):
     return int(decimal.Decimal(number).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP))
