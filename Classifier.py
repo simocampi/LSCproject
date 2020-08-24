@@ -2,13 +2,14 @@ from pyspark.mllib.util import MLUtils
 from wav_manipulation.wav import *
 from Utils.miscellaneous import split_data_label, split_train_test
 from pyspark.ml import Pipeline, PipelineModel
-from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.classification import RandomForestClassifier, RandomForestClassificationModel
 from pyspark.ml.feature import IndexToString
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from datetime import datetime
 from pyspark.ml.tuning import ParamGridBuilder
 from pyspark.ml.tuning import CrossValidator
 import numpy as np
+from py4j.protocol import Py4JJavaError
 
 
 
@@ -31,9 +32,9 @@ class RandomForest():
         model = None
         try:
             print('Load model..')
-            model = PipelineModel.load("hdfs://master:9000/user/user24/model")
+            model = PipelineModel.load("/home/user24/LSCproject/model")
 
-        except :
+        except (IOError, FileNotFoundError, ValueError, Py4JJavaError):
             print('RandomForestClassifier...', datetime.now())
             rf = RandomForestClassifier(labelCol="indexedDiagnosis", featuresCol="features", numTrees=10)       
             # Convert indexed labels back to original labels.
@@ -50,10 +51,11 @@ class RandomForest():
             #---------------SE FUNZIONA SOSTISTURE CON LA RIGA SOPRA CON QUELLO COMMENTATO SOTTO ----------------
             #crossval = self.crossvalidation(rf=rf, pipeline=pipeline)
             #model = crossval.fit(training_data)
+            #model.bestModel.write().save(hdfs://master:9000/user/user24/model)
             #----------------------------------------------------------------------------------------------------
 
             print('Save model..', datetime.now())
-            model.save("hdfs://master:9000/user/user24/model")
+            model.write.save("/home/user24/LSCproject/model")
 
         
 
