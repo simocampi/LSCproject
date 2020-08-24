@@ -61,7 +61,7 @@ class WAV():
         print('StringIndexer')
         indexer = StringIndexer(inputCol="Diagnosis", outputCol="indexedDiagnosis")
         df_patient_diagnosis = indexer.fit(df_patient_diagnosis).transform(df_patient_diagnosis)
-        df_patient_diagnosis.drop('Patient_Number').dropDuplicates(['indexedDiagnosis']).show() #DA SALVARE DA QUALCHE PARTE
+        df_patient_diagnosis.drop('Patient_Number').dropDuplicates(['indexedDiagnosis']).show()
 
         df_features = self.get_DataFrame()
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
@@ -147,7 +147,7 @@ class WAV():
         
         # flatting in order to have for each element of the (final) rdd a frame (mfcc) with its Crackels and Wheezes labels
         label_mfcc_map = log_energy_map.flatMap(lambda x: (np.array([f + [x[crackels_idx-1]] + [x[wheezes_idx-1]]+ [x[id_patient-1]] for f in x[0]])))
-        flat_mfcc_map = label_mfcc_map.map(lambda x: (np.array(x[:-3]), int(x[-3]), int(x[-2]), int(x[-1]))) # 13 mfcc, Crackels, Wheezes
+        flat_mfcc_map = label_mfcc_map.map(lambda x: (np.array(x[:-3]), int(x[-3]), int(x[-2]), int(x[-1]))) # 13 mfcc, Crackels, Wheezes, id_patient
         self.rdd=flat_mfcc_map
 
 

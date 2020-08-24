@@ -10,6 +10,7 @@ from pyspark.ml.tuning import ParamGridBuilder
 from pyspark.ml.tuning import CrossValidator
 import numpy as np
 from py4j.protocol import Py4JJavaError
+from pyspark.sql.functions import size
 
 
 
@@ -24,7 +25,9 @@ class RandomForest():
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
         assembler,data=split_data_label(data_labeled,label='indexedDiagnosis', features=['Data','Wheezes','Crackels'])
- 
+
+        data.select("*").count().show(5)
+
         # Split the data into training and test sets
         print('split_train_test...', datetime.now())
         training_data, test_data = split_train_test(data)
@@ -55,7 +58,7 @@ class RandomForest():
             #----------------------------------------------------------------------------------------------------
 
             print('Save model..', datetime.now())
-            model.write.save("/home/user24/LSCproject/model")
+            model.write().save("/home/user24/LSCproject/model")
 
         
 
