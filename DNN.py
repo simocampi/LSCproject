@@ -26,7 +26,7 @@ class NN():
     def __init__(self, spark_session, spark_context):        
         #will contain each step that the data pipeline needs to to complete all transformations within our pipeline
         self.stages = []
-        self.model = None
+        self.model = Sequential()
         self.spark_session = spark_session
         self.spark_context = spark_context
     
@@ -42,5 +42,16 @@ class NN():
         return training_data, test_data
 
     def create_model(self, input_dim = 15, num_classes=8):
-        pass
+        self.model.add(Dense(256, input_shape=(input_dim,)))
+        self.model.add(Activation('relu'))
+        self.model.add(Dense(128))
+        self.model.add(Activation('relu'))
+        self.model.add(Dense(64))
+        self.model.add(Activation('relu'))
+        self.module.add(Dense(num_classes))
+        self.model.add(Activation('softmax'))
+        self.model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+      
+      
     
