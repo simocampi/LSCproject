@@ -11,13 +11,14 @@ from wav_manipulation.wav import *
 from datetime import datetime
 
 # Keras / Deep Learning
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.layers import Dense, Dropout, Activation
 from keras import optimizers, regularizers
-from keras.optimizers import Adam
+from tensorflow.python.keras.optimizers import Adam
 
 # Elephas for Deep Learning on Spark
 from elephas.ml_model import ElephasEstimator
+from IPython.core.display import display
 
 
 
@@ -34,6 +35,7 @@ class NN():
         self.estimator=None
 
         self.create_model()
+        self.spark_ml_estimator()
     
     def get_train_test(self):
         wav = WAV(self.spark_session, self.spark_context)
@@ -44,7 +46,7 @@ class NN():
         print('split_train_test...', datetime.now())
         training_data, test_data = split_train_test(data)
 
-        return training_data, test_data
+        return training_data, test_data, assembler
 
     def create_model(self ):
         self.model.add(Dense(256, input_shape=(self.input_dim,)))
@@ -82,9 +84,9 @@ class NN():
     
     def fit(self, label="indexedDiagnosis"):
 
-        training_data, test_data = self.get_train_test()
+        training_data, test_data, assembler = self.get_train_test()
         
-        dl_pipeline = Pipeline(stages=[estimator])
+        dl_pipeline = Pipeline(stages=[assembler, self.estimator])
         fit_dl_pipeline = dl_pipeline.fit(training_data)
         
         pred_train = fit_dl_pipeline.transform(training_data)
@@ -93,4 +95,17 @@ class NN():
         pnl_train = pred_train.select(label, "prediction")
         pnl_test = pred_test.select(label, "prediction")
 
+        pred_and_label_train = pnl_train.rdd.map(lambda row: (row[label], row['prediction']))
+        pred_and_label_test = pnl_test.rdd.map(lambda row: (row[label], row['prediction']))
+
+        metrics_train = MulticlassMetrics(pred_and_label_train)
+        metrics_test = MulticlassMetrics(pred_and_label_test)
+
+        print("Training Data Accuracy: {}".format(round(metrics_train.precision(),4)))
+        print("Training Data Confusion Matrix")
+        display(pnl_train.crosstab('indexedDiagnosis', 'prediction').toPandas())
+        
+        print("\nTest Data Accuracy: {}".format(round(metrics_test.precision(),4)))
+        print("Test Data Confusion Matrix")
+        display(pnl_test.crosstab('indexedDiagnosis', 'prediction').toPandas())
             

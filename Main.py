@@ -20,6 +20,8 @@ spark_session = SparkSession(sparkContext=spark_context).builder \
 print('Create NN...')
 nn = NN(spark_session, spark_context)
 
+nn.fit()
+
 
 '''
 # ----the dataframe containing the informations about patients is created

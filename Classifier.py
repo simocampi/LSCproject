@@ -56,7 +56,7 @@ class RandomForest():
             #---------------SE FUNZIONA SOSTISTURE CON LA RIGA SOPRA CON QUELLO COMMENTATO SOTTO ----------------
             #crossval = self.crossvalidation(rf=rf, pipeline=pipeline)
             #model = crossval.fit(training_data)
-            #model.bestModel.write().save(hdfs://master:9000/user/user24/model)
+            #model.bestModel.write().save(home/user/user24/model)
             #----------------------------------------------------------------------------------------------------
 
             print('Save model..', datetime.now())
