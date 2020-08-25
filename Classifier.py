@@ -34,13 +34,12 @@ class RandomForest():
         print('split_train_test...', datetime.now())
         training_data, test_data = split_train_test(data)
         # Train a RandomForest model.
-        '''
-        model = None
+     
         try:
             print('Load model..')
-            model = PipelineModel.load("/home/user24/LSCproject/model")
+            self.model = PipelineModel.load("/home/user24/LSCproject/test")
 
-        except (IOError, FileNotFoundError, ValueError, Py4JJavaError):
+        except: #(IOError, FileNotFoundError, ValueError, Py4JJavaError):
             print('RandomForestClassifier...', datetime.now())
             rf = RandomForestClassifier(labelCol="indexedDiagnosis", featuresCol="features", numTrees=10)       
             # Convert indexed labels back to original labels.
@@ -51,7 +50,7 @@ class RandomForest():
             pipeline = Pipeline(stages=[assembler, rf])     
             # Train model.  This also runs the indexers.
             print('Fit...', datetime.now())
-            model = pipeline.fit(training_data) 
+            self.model = pipeline.fit(training_data) 
 
             
             #---------------SE FUNZIONA SOSTISTURE CON LA RIGA SOPRA CON QUELLO COMMENTATO SOTTO ----------------
@@ -61,18 +60,14 @@ class RandomForest():
             #----------------------------------------------------------------------------------------------------
 
             print('Save model..', datetime.now())
-            model.write().save("/home/user24/LSCproject/model")
-        '''
+            self.model.write().save("/home/user24/LSCproject/test")
+    
         print('Load model...')
-        self.model = PipelineModel.load("/home/user24/LSCproject/model")
+        self.model = PipelineModel.load("/home/user24/LSCproject/test")
 
         # Make predictions.
         print('Prediction...',datetime.now())
         predictions = self.model.transform(test_data)
-    
-        # Select example rows to display.
-        print('Show prediction...',datetime.now())
-        predictions.select("prediction", "indexedDiagnosis", "features").show(5)
 
         print('End Prediction...',datetime.now())
         return predictions
@@ -80,11 +75,11 @@ class RandomForest():
     def model_evalation(self,predictions):
         # Select (prediction, true label) and compute test error
         print('evaluation')
-        evaluator = MulticlassClassificationEvaluator(labelCol="indexedDiagnosis", predictionCol="prediction", metricName="accuracy")
+        evaluator = MulticlassClassificationEvaluator(labelCol="indexedDiagnosis", predictionCol="prediction", metricName="precision")
         accuracy = evaluator.evaluate(predictions)
         print("Test Error = %g" % (1.0 - accuracy))
 
-        rfModel = self.model.stages[2]
+        rfModel = self.model.stages[1]
         print(rfModel)  # summary only
     
     def crossvalidation(self,rf, pipeline):
