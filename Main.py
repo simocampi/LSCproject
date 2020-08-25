@@ -9,7 +9,7 @@ from Utils.BMI import replace_bmi_child
 
 from Classifier import RandomForest
 
-from DNN import *
+from DNN import NN
 
 conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
@@ -17,8 +17,9 @@ spark_context = SparkContext(conf=conf)
 spark_session = SparkSession(sparkContext=spark_context).builder \
                 .getOrCreate() \
 
+print('Create NN...')
+nn = NN(spark_session, spark_context)
 
-dappumangiaigatti()
 
 '''
 # ----the dataframe containing the informations about patients is created
@@ -42,7 +43,7 @@ rdd_demographic_info=demographic_info.get_Rdd()
 rdd_demographic_info_shrank= rdd_demographic_info.map(lambda p: replace_bmi_child(p)).toDF(demographic_info.) # new schema DemographicInfo
 '''
 
-wav = WAV(spark_session, spark_context)
+#wav = WAV(spark_session, spark_context)
 
 #wav.get_DataFrame().show(5)
 #wav.get_data_labeled_df().show(4)
@@ -51,9 +52,9 @@ wav = WAV(spark_session, spark_context)
 #print(audio_rdd.printSchema())
 #print('\n\n---------------------------------------------------------------------\n\n', audio_rdd.take(1))
 
-random_forest = RandomForest(spark_session, spark_context) 
-predictions= random_forest.train()
-random_forest.model_evalation(predictions=predictions)
+#random_forest = RandomForest(spark_session, spark_context) 
+#predictions= random_forest.train()
+#random_forest.model_evalation(predictions=predictions)
 
 
 #spect = binary_wave_rdd.map(lambda x: x[1])

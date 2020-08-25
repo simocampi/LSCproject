@@ -23,12 +23,17 @@ from elephas.ml_model import ElephasEstimator
 
 class NN():
     
-    def __init__(self, spark_session, spark_context):        
+    def __init__(self, spark_session, spark_context, input_dim=15, num_classes=8):        
         #will contain each step that the data pipeline needs to to complete all transformations within our pipeline
         self.stages = []
         self.model = Sequential()
         self.spark_session = spark_session
         self.spark_context = spark_context
+        self.input_dim = input_dim
+        self.num_classes = num_classes
+        self.estimator=None
+
+        self.create_model()
     
     def get_train_test(self):
         wav = WAV(self.spark_session, self.spark_context)
@@ -41,17 +46,51 @@ class NN():
 
         return training_data, test_data
 
-    def create_model(self, input_dim = 15, num_classes=8):
-        self.model.add(Dense(256, input_shape=(input_dim,)))
+    def create_model(self ):
+        self.model.add(Dense(256, input_shape=(self.input_dim,)))
         self.model.add(Activation('relu'))
         self.model.add(Dense(128))
         self.model.add(Activation('relu'))
         self.model.add(Dense(64))
         self.model.add(Activation('relu'))
-        self.module.add(Dense(num_classes))
+        self.model.add(Dense(self.num_classes))
         self.model.add(Activation('softmax'))
         self.model.compile(loss='categorical_crossentropy', optimizer='adam')
+        self.model.summary()
 
-      
-      
+    def spark_ml_estimator(self, epoch = 25, batch_size=64):
+        
+        optimizer_conf = optimizers.Adam(lr=0.01)
+        opt_conf = optimizers.serialize(optimizer_conf)
+        
+        # Initialize SparkML Estimator and Get Settings
+        self.estimator = ElephasEstimator()
+        self.estimator.setFeaturesCol("features")
+        self.estimator.setLabelCol("indexedDiagnosis")
+        self.estimator.set_keras_model_config(self.model.to_yaml())
+        self.estimator.set_categorical_labels(True)
+        self.estimator.set_nb_classes(self.num_classes)
+        self.estimator.set_num_workers(1)
+        self.estimator.set_epochs(epoch) 
+        self.estimator.set_batch_size(batch_size)
+        self.estimator.set_verbosity(1)
+        self.estimator.set_validation_split(0.10)
+        self.estimator.set_optimizer_config(opt_conf)
+        self.estimator.set_mode("synchronous")
+        self.estimator.set_loss("categorical_crossentropy")
+        self.estimator.set_metrics(['acc'])  
     
+    def fit(self, label="indexedDiagnosis"):
+
+        training_data, test_data = self.get_train_test()
+        
+        dl_pipeline = Pipeline(stages=[estimator])
+        fit_dl_pipeline = dl_pipeline.fit(training_data)
+        
+        pred_train = fit_dl_pipeline.transform(training_data)
+        pred_test = fit_dl_pipeline.transform(test_data)
+
+        pnl_train = pred_train.select(label, "prediction")
+        pnl_test = pred_test.select(label, "prediction")
+
+            
