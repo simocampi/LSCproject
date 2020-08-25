@@ -19,6 +19,7 @@ class RandomForest():
     def __init__(self, spark_session, spark_context):
         self.spark_session = spark_session
         self.spark_context = spark_context
+        self.model = None
 
               
     def train(self):
@@ -26,12 +27,14 @@ class RandomForest():
         data_labeled = wav.get_data_labeled_df()
         assembler,data=split_data_label(data_labeled,label='indexedDiagnosis', features=['Data','Wheezes','Crackels'])
 
-        data.select("*").count().show(5)
+        print('select count')
+        #data.select("*").count().show()
 
         # Split the data into training and test sets
         print('split_train_test...', datetime.now())
         training_data, test_data = split_train_test(data)
         # Train a RandomForest model.
+        '''
         model = None
         try:
             print('Load model..')
@@ -59,26 +62,29 @@ class RandomForest():
 
             print('Save model..', datetime.now())
             model.write().save("/home/user24/LSCproject/model")
-
-        
+        '''
+        print('Load model...')
+        self.model = PipelineModel.load("/home/user24/LSCproject/model")
 
         # Make predictions.
         print('Prediction...',datetime.now())
-        predictions = model.transform(test_data)
+        predictions = self.model.transform(test_data)
     
         # Select example rows to display.
-        predictions.select("prediction", "label", "features").show(5)
+        print('Show prediction...',datetime.now())
+        predictions.select("prediction", "indexedDiagnosis", "features").show(5)
 
-        return predictions, model
+        print('End Prediction...',datetime.now())
+        return predictions
     
-    def model_evalation(self,predictions,model):
+    def model_evalation(self,predictions):
         # Select (prediction, true label) and compute test error
         print('evaluation')
-        evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
+        evaluator = MulticlassClassificationEvaluator(labelCol="indexedDiagnosis", predictionCol="prediction", metricName="accuracy")
         accuracy = evaluator.evaluate(predictions)
         print("Test Error = %g" % (1.0 - accuracy))
 
-        rfModel = model.stages[2]
+        rfModel = self.model.stages[2]
         print(rfModel)  # summary only
     
     def crossvalidation(self,rf, pipeline):
