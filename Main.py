@@ -9,12 +9,17 @@ from Utils.BMI import replace_bmi_child
 
 from Classifier import RandomForest
 
+from DNN import *
+
 conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
 
 spark_session = SparkSession(sparkContext=spark_context).builder \
                 .getOrCreate() \
-                
+
+
+dappumangiaigatti()
+
 '''
 # ----the dataframe containing the informations about patients is created
 demographic_info = DemographicInfo(spark_session)
