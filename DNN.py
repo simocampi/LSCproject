@@ -18,7 +18,7 @@ import tensorflow as tf
 
 # Keras / Deep Learning
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation
+from keras.layers.core import Dense, Dropout, Activation
 from keras import optimizers, regularizers
 from keras.optimizers import Adam
 
@@ -26,13 +26,15 @@ from keras.optimizers import Adam
 from elephas.ml_model import ElephasEstimator
 from IPython.core.display import display
 
-
+import tensorflow as tf
 
 
 class NN():
     
     def __init__(self, spark_session, spark_context, input_dim=15, num_classes=8):        
         #will contain each step that the data pipeline needs to to complete all transformations within our pipeline
+        #physical_devices = tf.config.list_physical_devices('GPU')
+        #print("Num GPUs:", len(physical_devices))
         self.stages = []
         self.model = Sequential()
         self.spark_session = spark_session
@@ -87,7 +89,7 @@ class NN():
         self.estimator.set_epochs(epoch) 
         self.estimator.set_batch_size(batch_size)
         self.estimator.set_verbosity(1)
-        self.estimator.set_validation_split(0.3)
+        self.estimator.set_validation_split(30)
         self.estimator.set_optimizer_config(opt_conf)
         self.estimator.set_mode("synchronous")
         self.estimator.set_loss("categorical_crossentropy")
