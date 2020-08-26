@@ -10,15 +10,22 @@ from Utils.miscellaneous import split_data_label, split_train_test
 from wav_manipulation.wav import *
 from datetime import datetime
 
+import os
+os.environ['TF_KERAS'] = '1'
+import tensorflow as tf
+# sess = tf.compat.v1.Session(graph=tf.import_graph_def(), config=session_conf)
+tf.compat.v1.disable_eager_execution()
+
 # Keras / Deep Learning
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.layers import Dense, Dropout, Activation
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation
 from keras import optimizers, regularizers
-from tensorflow.python.keras.optimizers import Adam
+from keras.optimizers import Adam
 
 # Elephas for Deep Learning on Spark
 from elephas.ml_model import ElephasEstimator
 from IPython.core.display import display
+
 
 
 
@@ -38,15 +45,17 @@ class NN():
         self.spark_ml_estimator()
     
     def get_train_test(self):
+        
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
         assembler,data=split_data_label(data_labeled,label='indexedDiagnosis', features=['Data','Wheezes','Crackels'])
-
+        data = assembler.transform(data) 
+        data = data.select(col('indexedDiagnosis').alias('labels'),col('features'))
+        #data.show(5)
         # Split the data into training and test sets
         print('split_train_test...', datetime.now())
         training_data, test_data = split_train_test(data)
-
-        return training_data, test_data, assembler
+        return training_data, test_data
 
     def create_model(self ):
         self.model.add(Dense(256, input_shape=(self.input_dim,)))
@@ -64,11 +73,10 @@ class NN():
         
         optimizer_conf = optimizers.Adam(lr=0.01)
         opt_conf = optimizers.serialize(optimizer_conf)
-        
         # Initialize SparkML Estimator and Get Settings
         self.estimator = ElephasEstimator()
         self.estimator.setFeaturesCol("features")
-        self.estimator.setLabelCol("indexedDiagnosis")
+        self.estimator.setLabelCol("labels")
         self.estimator.set_keras_model_config(self.model.to_yaml())
         self.estimator.set_categorical_labels(True)
         self.estimator.set_nb_classes(self.num_classes)
@@ -82,11 +90,11 @@ class NN():
         self.estimator.set_loss("categorical_crossentropy")
         self.estimator.set_metrics(['acc'])  
     
-    def fit(self, label="indexedDiagnosis"):
+    def fit(self, label="labels"):
 
-        training_data, test_data, assembler = self.get_train_test()
+        training_data, test_data = self.get_train_test()
         
-        dl_pipeline = Pipeline(stages=[assembler, self.estimator])
+        dl_pipeline = Pipeline(stages=[self.estimator])
         fit_dl_pipeline = dl_pipeline.fit(training_data)
         
         pred_train = fit_dl_pipeline.transform(training_data)
@@ -103,9 +111,20 @@ class NN():
 
         print("Training Data Accuracy: {}".format(round(metrics_train.precision(),4)))
         print("Training Data Confusion Matrix")
-        display(pnl_train.crosstab('indexedDiagnosis', 'prediction').toPandas())
+        display(pnl_train.crosstab('labels', 'prediction').toPandas())
         
         print("\nTest Data Accuracy: {}".format(round(metrics_test.precision(),4)))
         print("Test Data Confusion Matrix")
-        display(pnl_test.crosstab('indexedDiagnosis', 'prediction').toPandas())
+        display(pnl_test.crosstab('labels', 'prediction').toPandas())
+
+
+    def OneHot(self, df):
+        oneHot_dict = {0:[0,0,0,0,0,0,0,1],1:[0,0,0,0,0,0,1,0],
+                       2:[0,0,0,0,0,1,0,0],3:[0,0,0,0,1,0,0,0],
+                       4:[0,0,0,1,0,0,0,0],5:[0,0,1,0,0,0,0,0],
+                       6:[0,1,0,0,0,0,0,0],7:[1,0,0,0,0,0,0,0]}
+
+        df = df.rdd.map(lambda x:(oneHot_dict.get(x[0]), x[1]))
+        df = df.toDF(['labels','features'])
+        pass
             
