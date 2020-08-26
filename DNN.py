@@ -11,14 +11,15 @@ from wav_manipulation.wav import *
 from datetime import datetime
 
 # Keras / Deep Learning
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.layers import Dense, Dropout, Activation
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Activation
 from keras import optimizers, regularizers
-from tensorflow.python.keras.optimizers import Adam
+from keras.optimizers import Adam
 
 # Elephas for Deep Learning on Spark
 from elephas.ml_model import ElephasEstimator
 from IPython.core.display import display
+
 
 
 
@@ -57,7 +58,7 @@ class NN():
         self.model.add(Activation('relu'))
         self.model.add(Dense(self.num_classes))
         self.model.add(Activation('softmax'))
-        self.model.compile(loss='categorical_crossentropy', optimizer='adam')
+        self.model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.01))
         self.model.summary()
 
     def spark_ml_estimator(self, epoch = 25, batch_size=64):
@@ -67,6 +68,9 @@ class NN():
         
         # Initialize SparkML Estimator and Get Settings
         self.estimator = ElephasEstimator()
+        #self.estimator = ElephasEstimator(self.model, epochs = epoch, batch_size = batch_size, mode = 'asynchronous', nb_classes=self.num_classes, categorical=True, num_workers = 1, validation_split = 0.3, verbose = 1,metrics = ['acc'], labelCol = "indexedDiagnosis", featuresCol = "features")
+        #self.estimator = ElephasEstimator(self.model,  epochs=epoch, batch_size=batch_size, frequency='batch', mode='asynchronous',categorical=True, nb_classes=self.num_classes)
+        
         self.estimator.setFeaturesCol("features")
         self.estimator.setLabelCol("indexedDiagnosis")
         self.estimator.set_keras_model_config(self.model.to_yaml())
@@ -76,7 +80,7 @@ class NN():
         self.estimator.set_epochs(epoch) 
         self.estimator.set_batch_size(batch_size)
         self.estimator.set_verbosity(1)
-        self.estimator.set_validation_split(0.10)
+        self.estimator.set_validation_split(0.3)
         self.estimator.set_optimizer_config(opt_conf)
         self.estimator.set_mode("synchronous")
         self.estimator.set_loss("categorical_crossentropy")
@@ -88,7 +92,8 @@ class NN():
         
         dl_pipeline = Pipeline(stages=[assembler, self.estimator])
         fit_dl_pipeline = dl_pipeline.fit(training_data)
-        
+        #fit_dl_pipeline = self.estimator.fit(training_data)
+
         pred_train = fit_dl_pipeline.transform(training_data)
         pred_test = fit_dl_pipeline.transform(test_data)
 
