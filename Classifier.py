@@ -25,16 +25,16 @@ class RandomForest():
     def train(self):
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
-        assembler,data=split_data_label(data_labeled,label='indexedDiagnosis', features=['Data','Wheezes','Crackels'])
-        data = assembler.transform(data) 
-        data = data.select(col('indexedDiagnosis').alias('label'),col('features'))
+        assembler,data=split_data_label(data_labeled,label='label', features=['Data','Wheezes','Crackels'])
+        #data = assembler.transform(data) 
+        #data = data.select(col('indexedDiagnosis').alias('label'),col('features'))
 
-        data.show(15)
+        #data.show(15)
 
         print('select count')
         #data.select("*").count().show()
 
-        # Split the data into training and test sets
+        # Split the data into training and test set
         print('split_train_test...', datetime.now())
         training_data, test_data = split_train_test(data)
         # Train a RandomForest model.
@@ -48,7 +48,7 @@ class RandomForest():
         rf = RandomForestClassifier(labelCol="label", featuresCol="features")       
       
         print('Pipeline...\       ',datetime.now())
-        pipeline = Pipeline(stages=[rf])     
+        pipeline = Pipeline(stages=[assembler, rf])     
         
         # Train model.  This also runs the indexers.
         #print('Fit...', datetime.now())
@@ -77,8 +77,7 @@ class RandomForest():
         print('evaluation...', datetime.now())
         evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
         accuracy = evaluator.evaluate(predictions)
-        print("Test Error = %g" % (1.0 - accuracy))
-        rfModel = self.model.stages[1]
+        print("Accuracy on Test = %g" % (accuracy))
         print(rfModel)  # summary only
     
     def crossvalidation(self,rf, pipeline):
@@ -91,7 +90,8 @@ class RandomForest():
         crossval = CrossValidator(estimator=pipeline,
                           estimatorParamMaps=paramGrid,
                           evaluator=MulticlassClassificationEvaluator(),
-                          numFolds=3)
+                          numFolds=3,
+                          parallelism = 4)
 
         return crossval
 

@@ -15,13 +15,14 @@ def split_data_label(data, label, features):
     data = list_to_vector(data, 'Data')
 
     #----------To test----------
-    print('take first 100 row')
-    data = data.limit(100)
+    print('SIZE OF THE DATASET: ', data.rdd.count())
+    #data = data.limit(100)
     #---------------------------
 
 
     data.printSchema()
     
+
     assembler = VectorAssembler(
         inputCols=features,
         outputCol="features")
