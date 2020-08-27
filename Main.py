@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark import SparkContext, SparkConf
+import time
 
 
 from wav_manipulation.wav import WAV
@@ -16,6 +17,8 @@ spark_context = SparkContext(conf=conf)
 
 spark_session = SparkSession(sparkContext=spark_context).builder \
                 .getOrCreate() \
+
+spark_context._jsc.sc().getExecutorMemoryStatus()
 
 print('Create NN...')
 nn = NN(spark_session, spark_context)
