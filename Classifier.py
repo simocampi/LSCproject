@@ -27,7 +27,9 @@ class RandomForest():
         data_labeled = wav.get_data_labeled_df()
         assembler,data=split_data_label(data_labeled,label='indexedDiagnosis', features=['Data','Wheezes','Crackels'])
         data = assembler.transform(data) 
-        data = data.select(col('indexedDiagnosis').alias('labels'),col('features'))
+        data = data.select(col('indexedDiagnosis').alias('label'),col('features'))
+
+        data.show(15)
 
         print('select count')
         #data.select("*").count().show()
@@ -37,38 +39,33 @@ class RandomForest():
         training_data, test_data = split_train_test(data)
         # Train a RandomForest model.
      
-        try:
-            print('Load model..')
-            self.model = PipelineModel.load("/user/user24/model_crossval")
+        #try:
+         #   print('Load model..')
+          #  self.model = PipelineModel.load("/user/user24/model_crossval")
 
-        except: #(IOError, FileNotFoundError, ValueError, Py4JJavaError):
-            print('RandomForestClassifier...', datetime.now())
-            rf = RandomForestClassifier(labelCol="labels", featuresCol="features")       
-            # Convert indexed labels back to original labels.
-            #labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels=data.labels)       
+        #except: #(IOError, FileNotFoundError, ValueError, Py4JJavaError):
+        print('RandomForestClassifier...', datetime.now())
+        rf = RandomForestClassifier(labelCol="label", featuresCol="features")       
+      
+        print('Pipeline...\       ',datetime.now())
+        pipeline = Pipeline(stages=[rf])     
+        
+        # Train model.  This also runs the indexers.
+        #print('Fit...', datetime.now())
+        #self.model = pipeline.fit(training_data)   
 
-            # Chain indexers and forest in a Pipeline
-            print('Pipeline...\       ',datetime.now())
-            pipeline = Pipeline(stages=[rf])     
-            # Train model.  This also runs the indexers.
-            #print('Fit...', datetime.now())
-            #self.model = pipeline.fit(training_data) 
-
-            
-            #---------------SE FUNZIONA SOSTISTURE CON LA RIGA SOPRA CON QUELLO COMMENTATO SOTTO ----------------
-            print('crossvalidation... ', datetime.now())
-            crossval = self.crossvalidation(rf=rf, pipeline=pipeline)
-            print('fit after crossvalidation... ', datetime.now())
-            self.model = crossval.fit(training_data)
-            #----------------------------------------------------------------------------------------------------
-
-            print('Save model..', datetime.now())
-            self.model.write().save("/user/user24/model_crossval")
-    
-        #print('Load model...')
-        #self.model = PipelineModel.load("/user/user24/model_crossval")
-
-        # Make predictions.
+        #---------------SE FUNZIONA SOSTISTURE CON LA RIGA SOPRA CON QUELLO COMMENTATO SOTTO ----------------
+        print('crossvalidation... ', datetime.now())
+        crossval = self.crossvalidation(rf=rf, pipeline=pipeline)
+        print('fit after crossvalidation... ', datetime.now())
+        self.model = crossval.fit(training_data)
+        #---------------------------------------------------------------------------------------------------    
+        print('Save model..', datetime.now())
+        self.model.bestModel.write().overwrite().save("/user/user24/model_crossval")
+        print('Load model...')
+        self.model = PipelineModel.load("/user/user24/model_crossval")
+        
+        # Make predictions
         print('Prediction...',datetime.now())
         predictions = self.model.transform(test_data)
 
@@ -78,7 +75,7 @@ class RandomForest():
     def model_evalation(self,predictions):
         # Select (prediction, true label) and compute test error
         print('evaluation...', datetime.now())
-        evaluator = MulticlassClassificationEvaluator(labelCol="labels", predictionCol="prediction", metricName="precision")
+        evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
         accuracy = evaluator.evaluate(predictions)
         print("Test Error = %g" % (1.0 - accuracy))
         rfModel = self.model.stages[1]
