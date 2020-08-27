@@ -26,6 +26,8 @@ class RandomForest():
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
         assembler,data=split_data_label(data_labeled,label='indexedDiagnosis', features=['Data','Wheezes','Crackels'])
+        data = assembler.transform(data) 
+        data = data.select(col('indexedDiagnosis').alias('labels'),col('features'))
 
         print('select count')
         #data.select("*").count().show()
@@ -37,33 +39,34 @@ class RandomForest():
      
         try:
             print('Load model..')
-            self.model = PipelineModel.load("/home/user24/LSCproject/test")
+            self.model = PipelineModel.load("/user/user24/model_crossval")
 
         except: #(IOError, FileNotFoundError, ValueError, Py4JJavaError):
             print('RandomForestClassifier...', datetime.now())
-            rf = RandomForestClassifier(labelCol="indexedDiagnosis", featuresCol="features", numTrees=10)       
+            rf = RandomForestClassifier(labelCol="labels", featuresCol="features")       
             # Convert indexed labels back to original labels.
             #labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels=data.labels)       
 
             # Chain indexers and forest in a Pipeline
             print('Pipeline...\       ',datetime.now())
-            pipeline = Pipeline(stages=[assembler, rf])     
+            pipeline = Pipeline(stages=[rf])     
             # Train model.  This also runs the indexers.
-            print('Fit...', datetime.now())
-            self.model = pipeline.fit(training_data) 
+            #print('Fit...', datetime.now())
+            #self.model = pipeline.fit(training_data) 
 
             
             #---------------SE FUNZIONA SOSTISTURE CON LA RIGA SOPRA CON QUELLO COMMENTATO SOTTO ----------------
-            #crossval = self.crossvalidation(rf=rf, pipeline=pipeline)
-            #model = crossval.fit(training_data)
-            #model.bestModel.write().save(hdfs://master:9000/user/user24/model)
+            print('crossvalidation... ', datetime.now())
+            crossval = self.crossvalidation(rf=rf, pipeline=pipeline)
+            print('fit after crossvalidation... ', datetime.now())
+            self.model = crossval.fit(training_data)
             #----------------------------------------------------------------------------------------------------
 
             print('Save model..', datetime.now())
-            self.model.write().save("/home/user24/LSCproject/test")
+            self.model.write().save("/user/user24/model_crossval")
     
-        print('Load model...')
-        self.model = PipelineModel.load("/home/user24/LSCproject/test")
+        #print('Load model...')
+        #self.model = PipelineModel.load("/user/user24/model_crossval")
 
         # Make predictions.
         print('Prediction...',datetime.now())
@@ -74,11 +77,10 @@ class RandomForest():
     
     def model_evalation(self,predictions):
         # Select (prediction, true label) and compute test error
-        print('evaluation')
-        evaluator = MulticlassClassificationEvaluator(labelCol="indexedDiagnosis", predictionCol="prediction", metricName="precision")
+        print('evaluation...', datetime.now())
+        evaluator = MulticlassClassificationEvaluator(labelCol="labels", predictionCol="prediction", metricName="precision")
         accuracy = evaluator.evaluate(predictions)
         print("Test Error = %g" % (1.0 - accuracy))
-
         rfModel = self.model.stages[1]
         print(rfModel)  # summary only
     
