@@ -15,7 +15,7 @@ def split_data_label(data, label, features):
     data = list_to_vector(data, 'Data')
 
     #----------To test----------
-    print('SIZE OF THE DATASET: ', data.rdd.count())
+    #print('SIZE OF THE DATASET: ', data.rdd.count())
     #data = data.limit(100)
     #---------------------------
 

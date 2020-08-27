@@ -89,7 +89,7 @@ class RandomForest():
 
         crossval = CrossValidator(estimator=pipeline,
                           estimatorParamMaps=paramGrid,
-                          evaluator=MulticlassClassificationEvaluator(),
+                          evaluator=MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy"),
                           numFolds=3,
                           parallelism = 4)
 
