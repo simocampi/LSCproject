@@ -40,8 +40,6 @@ def drop_unecessaryColumns(data, columns=[]):
 def train(trainingData):
     layers = [13, 8, 1]
 
-
-
     FNN = MultilayerPerceptronClassifier(labelCol="label", \
                                          featuresCol="features",\
                                          maxIter=50, layers=layers, \
