@@ -58,15 +58,12 @@ class WAV():
         patient_diagnosis = PatientDiagnosis(self.spark_session)
         df_patient_diagnosis=patient_diagnosis.get_DataFrame()
         
-        print('StringIndexer')
         indexer = StringIndexer(inputCol="Diagnosis", outputCol="label")
         df_patient_diagnosis = indexer.fit(df_patient_diagnosis).transform(df_patient_diagnosis)
-        df_patient_diagnosis.drop('Patient_Number').dropDuplicates(['label']).show()
 
         df_features = self.get_DataFrame()
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
         joint_df = joint_df.drop('Patient_Number', 'Diagnosis')
-        joint_df.show(10)
         self.data_labeled = joint_df
         #self.rdd.toDF().show(2)
 
