@@ -14,6 +14,10 @@ spark_context = SparkContext(conf=conf)
 
 spark_session = SparkSession(sparkContext=spark_context).builder \
                 .config("spark.driver.memory", "15g") \
+                .config("spark.executor.memory" , "15g") \
+                .config("spark.yarn.executor.memoryOverhead", 4096) \
+                .config("spark.driver.cores", 5 ) \
+                .config("spark.executor.cores", 5 ) \
                 .getOrCreate() \
                 
 '''
