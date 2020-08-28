@@ -13,6 +13,7 @@ conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
 
 spark_session = SparkSession(sparkContext=spark_context).builder \
+                .config("spark.driver.memory", "15g") \
                 .getOrCreate() \
                 
 '''
