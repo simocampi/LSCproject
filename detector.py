@@ -40,7 +40,8 @@ def drop_unecessaryColumns(data, columns=[]):
     return data
 
 def train(trainingData):
-    layers = [13, 8, 2]
+    #layers = [13, 8, 2]    accuracy = 0.650186, Test Error = 0.349814
+    layers = [13, 8, 5, 2]
 
     FNN = MultilayerPerceptronClassifier(labelCol="label", \
                                          featuresCol="features",\
@@ -58,6 +59,7 @@ def evaluate(model, eval_data):
     # Select (prediction, true label) and compute test error
     evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
     accuracy = evaluator.evaluate(predictions)
+    print('evaluation finish', datetime.now())
     print("Predictions accuracy = %g, Test Error = %g" % (accuracy,(1.0 - accuracy)))
 
     return accuracy
@@ -78,14 +80,14 @@ def test(my_data):
     print('rename...', datetime.now())
     my_data = transform_data_label(my_data, label='Wheezes', features=['Data'])
     my_data.printSchema()
-    #my_data.groupBy('label').count().show()
+    my_data.groupBy('label').count().show()
 
     print('splitting...', datetime.now(),"\n")
     training_data, validation_data = split_train_test(my_data, training_data_ratio=0.3)
     training_data, test_data = split_train_test(training_data)
     
-    #print('training data count...', datetime.now())
-    #training_data.groupBy('label').count().show()
+    print('training data count...', datetime.now())
+    training_data.groupBy('label').count().show()
 
     print('training...', datetime.now(),"\n")
     my_mode = train(training_data)
