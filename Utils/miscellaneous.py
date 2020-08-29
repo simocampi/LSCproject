@@ -14,6 +14,10 @@ def split_train_test(labeled_point_rdd, training_data_ratio=0.7, random_seeds=13
 def split_data_label(data, label, features):    
     data = list_to_vector(data, 'Data')
 
+    data = data.sample(False,0.5, 13579)
+    print('count data..')
+    print('SIZE OF DATASET: ', data.rdd.count())
+
     #----------To test----------
     #print('SIZE OF THE DATASET: ', data.rdd.count())
     #data = data.limit(100)

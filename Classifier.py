@@ -26,6 +26,8 @@ class RandomForest():
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
         assembler,data=split_data_label(data_labeled,label='label', features=['Data','Wheezes','Crackels'])
+        
+        #trasnform non va con il primo modello salvato, decommentare per altre operazioni
         data = assembler.transform(data) 
         #data = data.select(col('indexedDiagnosis').alias('label'),col('features'))
 
@@ -44,6 +46,8 @@ class RandomForest():
           #  self.model = PipelineModel.load("/user/user24/model_crossval")
 
         #except: #(IOError, FileNotFoundError, ValueError, Py4JJavaError):
+        
+        
         print('RandomForestClassifier...', datetime.now())
         rf = RandomForestClassifier(labelCol="label", featuresCol="features")       
       
@@ -61,8 +65,11 @@ class RandomForest():
         #---------------------------------------------------------------------------------------------------    
         print('Save model..', datetime.now())
         self.model.bestModel.write().overwrite().save("/user/user24/model_crossval")
+        
+        
         print('Load model...')
         self.model = PipelineModel.load("/user/user24/model_crossval")
+        #self.model = PipelineModel.load("/home/user24/LSCproject/model")
         
         # Make predictions
         print('Prediction...',datetime.now())
@@ -81,8 +88,8 @@ class RandomForest():
     def crossvalidation(self,rf, pipeline):
         
         paramGrid = ParamGridBuilder() \
-        .addGrid(rf.numTrees, [int(x) for x in np.linspace(start = 10, stop = 50, num = 3)]) \
-        .addGrid(rf.maxDepth, [int(x) for x in np.linspace(start = 5, stop = 25, num = 3)]) \
+        .addGrid(rf.numTrees, [int(x) for x in np.linspace(start = 10, stop = 50, num = 5)]) \
+        .addGrid(rf.maxDepth, [int(x) for x in np.linspace(start = 5, stop = 25, num = 5)]) \
         .build()
 
         crossval = CrossValidator(estimator=pipeline,
