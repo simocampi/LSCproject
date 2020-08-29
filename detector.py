@@ -13,6 +13,8 @@ from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 
 from Utils.miscellaneous import list_to_vector
 
+from datetime import datetime
+
 
 
 def split_train_test(labeled_point_rdd, training_data_ratio=0.7, random_seeds=42):
@@ -38,7 +40,7 @@ def drop_unecessaryColumns(data, columns=[]):
     return data
 
 def train(trainingData):
-    layers = [13, 8, 1]
+    layers = [13, 8, 2]
 
     FNN = MultilayerPerceptronClassifier(labelCol="label", \
                                          featuresCol="features",\
@@ -62,29 +64,33 @@ def evaluate(model, eval_data):
 
 
 def test(my_data):
-    print("drop...")
+    print("drop...", datetime.now())
     to_drop = ['Crackels', 'Patient_number']
     my_data = drop_unecessaryColumns(my_data, to_drop)
     my_data.printSchema()
 
-    print('cast...')
+    print('cast...', datetime.now())
     my_data = my_data.withColumn("WheezesTemp", my_data['Wheezes'].cast(IntegerType()))\
                      .drop("Wheezes")\
                      .withColumnRenamed("WheezesTemp", "Wheezes")
     my_data.printSchema()
 
-    print('rename...')
+    print('rename...', datetime.now())
     my_data = transform_data_label(my_data, label='Wheezes', features=['Data'])
     my_data.printSchema()
     #my_data.groupBy('label').count().show()
 
-    print('splitting...\n')
-    training_data, test_data = split_train_test(my_data)
+    print('splitting...', datetime.now(),"\n")
+    training_data, validation_data = split_train_test(my_data, training_data_ratio=0.3)
+    training_data, test_data = split_train_test(training_data)
+    
+    #print('training data count...', datetime.now())
+    #training_data.groupBy('label').count().show()
 
-    print('training...\n')
+    print('training...', datetime.now(),"\n")
     my_mode = train(training_data)
 
-    print('evaluating....')
+    print('evaluating....', datetime.now(),"\n")
     acc = evaluate(my_mode, test_data)
 
 
