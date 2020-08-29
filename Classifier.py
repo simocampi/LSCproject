@@ -25,10 +25,10 @@ class RandomForest():
     def train(self):
         wav = WAV(self.spark_session, self.spark_context)
         data_labeled = wav.get_data_labeled_df()
-        assembler,data=split_data_label(data_labeled,label='label', features=['Data','Wheezes','Crackels'])
+        data=split_data_label(data_labeled,label='label', features=['Data','Wheezes','Crackels'])
         
         #trasnform non va con il primo modello salvato, decommentare per altre operazioni
-        data = assembler.transform(data) 
+        
         #data = data.select(col('indexedDiagnosis').alias('label'),col('features'))
 
         #data.show(15)
