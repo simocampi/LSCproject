@@ -6,7 +6,7 @@ from wav_manipulation.wav import WAV
 from DataManipulation.DemographicInfo import DemographicInfo
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from Utils.BMI import replace_bmi_child
-import datetime
+from datetime import datetime
 import MultiLayerPerceptron
 
 from Classifier import RandomForest

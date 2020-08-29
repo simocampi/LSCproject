@@ -27,7 +27,7 @@ from datetime import datetime
 '''
 
 #divide the data into features and labels 
-def transform_data_label(data, label, features):    
+'''def transform_data_label(data, label, features):    
     data = list_to_vector(data, 'Data')
 
     assembler = VectorAssembler(
@@ -38,6 +38,7 @@ def transform_data_label(data, label, features):
     input_data = data.select(col(label).alias('label'), data['features'])
 
     return input_data
+'''
 
 def drop_unecessaryColumns(data, columns=[]):
     data = data.drop(*columns)
@@ -45,7 +46,7 @@ def drop_unecessaryColumns(data, columns=[]):
 
 def train(trainingData):
     #layers = [13, 8, 2]    accuracy = 0.650186, Test Error = 0.349814
-    layers = [13, 8, 5, 2]
+    layers = [15, 8, 5, 8]
 
     FNN = MultilayerPerceptronClassifier(labelCol="label", \
                                          featuresCol="features",\
