@@ -109,7 +109,7 @@ def fit_and_test(data_labeled):
     print('Train... ', datetime.now())
     model = train(training_data)
     #/home/user24/LSCproject_2/multiperceptron_model
-    model.write().save("/home/user24/LSCproject_2/multiperceptron_model")
+    model.write().overwrite().save("/home/user24/LSCproject_2/multiperceptron_model")
     
     model = PipelineModel.load("/home/user24/LSCproject_2/multiperceptron_model")
     print('evaluating....', datetime.now(),"\n")
