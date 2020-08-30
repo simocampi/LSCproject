@@ -47,7 +47,8 @@ def evaluate(model, eval_data):
     print("Predictions accuracy = {0}%, Test Error = {1}".format( accuracy*100, (1.0 - accuracy)))
     return accuracy
 
-#con 40% dataset: train 40 min, evaluate 1.30 h, accuracy: 0.88, 
+#con 40% dataset: train 42 min, evaluate 1.30 h, accuracy: 88 %, 
+#con 60% dataset: train 47 min, evaluate        , accuracy:
 
 
 def fit_and_test(data_labeled):
