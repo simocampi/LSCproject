@@ -11,6 +11,8 @@ from pyspark.ml.feature import VectorIndexer
 from pyspark.ml.classification import MultilayerPerceptronClassifier
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from pyspark.ml import Pipeline, PipelineModel
+from py4j.protocol import Py4JJavaError
+
 
 from Utils.miscellaneous import list_to_vector
 from Utils.miscellaneous import split_train_test, split_data_label
@@ -48,20 +50,28 @@ def evaluate(model, eval_data):
     return accuracy
 
 #con 40% dataset: train 42 min, evaluate 1.30 h, accuracy: 88 %, 
-#con 60% dataset: train 47 min, evaluate        , accuracy:
+#con 60% dataset: train 47 min, evaluate 1.32 h, accuracy: 88.03853398828596%
+#con 100% dataset: train 43 min, evaluate 1.25 h, accuracy: Predictions accuracy = 87.57565176908753%, Test Error = 0.12424348230912474
+# usando la persist su dataset la evaluate ci mette solo 3 min
 
 
 def fit_and_test(data_labeled):
     data=split_data_label(data_labeled,label='label', features=['Data','Wheezes','Crackels'])
+
     print('split_train_test...', datetime.now())
     training_data, test_data = split_train_test(data)
-    print('Train... ', datetime.now())
-    model = train(training_data)
-    #/home/user24/LSCproject_2/multiperceptron_model
-    print('save model... ')
-    model.write().overwrite().save("/home/user24/LSCproject_2/multiperceptron_model")
     
     print('Load model...')
-    model = PipelineModel.load("/home/user24/LSCproject_2/multiperceptron_model")
+    #per testare la load
+    try:
+        model = PipelineModel.load("/home/user24/LSCproject_2/multiperceptron_model")
+    
+    except Py4JJavaError:
+        print('Train... ', datetime.now())
+        model = train(training_data)
+        #/home/user24/LSCproject_2/multiperceptron_model
+        print('save model... ')
+        model.write().overwrite().save("/home/user24/LSCproject_2/multiperceptron_model")
+    
     print('evaluating....', datetime.now(),"\n")
     acc = evaluate(model, test_data)

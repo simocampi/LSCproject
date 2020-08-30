@@ -20,8 +20,9 @@ conf = SparkConf().setAppName('LSC_Project')
 spark_context = SparkContext(conf=conf)
 
 spark_session = SparkSession(sparkContext=spark_context).builder \
-                .config("spark.driver.memory", "15g") \
                 .getOrCreate()
+                #.config("spark.driver.memory", "15g") \
+                
 print("spark context & spark session created\t", datetime.now())
                 
 wav = WAV(spark_session, spark_context)

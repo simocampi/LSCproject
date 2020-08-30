@@ -12,6 +12,7 @@ import librosa as lb
 from scipy.fftpack import dct
 from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from pyspark.ml.feature import StringIndexer
+from pyspark import StorageLevel
 
 def round_half_up(number):
     return int(decimal.Decimal(number).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP))
@@ -48,11 +49,8 @@ class WAV():
     def get_Rdd(self):
         return self.rdd
     
-    def get_data_labeled_df(self,rdd=False):
-        if rdd:
-            return self.data_labeled.rdd
-        else:
-            return self.data_labeled
+    def get_data_labeled_df(self):
+        return self.data_labeled
 
     def associate_labels(self):
         patient_diagnosis = PatientDiagnosis(self.spark_session)
@@ -68,7 +66,10 @@ class WAV():
         joint_df = joint_df.drop('Patient_Number', 'Diagnosis')
         joint_df.show(10)
         self.data_labeled = joint_df
-        #self.rdd.toDF().show(2)
+        #da decommentare alla fine
+        if  self.data_labeled.is_cached == False:
+            print('Persist data...')
+            self.data_labeled.persist(StorageLevel.MEMORY_AND_DISK)
 
     # return an rdd with data and corresponding path
     def read_wav(self):
@@ -81,7 +82,6 @@ class WAV():
     def split_and_pad(self):
         audioDataFrame = self.dataFrame
         annotationRdd = self.annotationDataframe
-
         # join annotation and file content
          # output: Filename, start, end crackles, wheezes, duration, sample_rate, data
         jointDataframe = annotationRdd.join(audioDataFrame, on=['Filename'], how='inner').rdd

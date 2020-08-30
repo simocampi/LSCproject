@@ -4,6 +4,7 @@ from pyspark.ml.linalg import Vectors, VectorUDT, Vector
 from pyspark.sql.functions import udf
 from pyspark.ml import linalg
 from pyspark.sql import Row
+from py4j.protocol import Py4JJavaError
 
 def split_train_test(labeled_point_rdd, training_data_ratio=0.7, random_seeds=13579):
     splits = [training_data_ratio, 1.0 - training_data_ratio]
@@ -13,10 +14,7 @@ def split_train_test(labeled_point_rdd, training_data_ratio=0.7, random_seeds=13
 #divide the data into features and labels 
 def split_data_label(data, label, features):    
     data = list_to_vector(data, 'Data')
-
-    data = data.sample(False, 0.6, 13579)
-    #print('count data..')
-    #print('SIZE OF DATASET: ', data.rdd.count())
+    print('Dataset Completo')
     data.printSchema()
     assembler = VectorAssembler(
         inputCols=features,
