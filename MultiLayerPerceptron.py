@@ -44,8 +44,10 @@ def evaluate(model, eval_data):
     evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
     accuracy = evaluator.evaluate(predictions)
     print('evaluation finish', datetime.now())
-    print("Predictions accuracy = %g, Test Error = %g" % (accuracy, (1.0 - accuracy)))
+    print("Predictions accuracy = {0}%, Test Error = {1}".format( accuracy*100, (1.0 - accuracy)))
     return accuracy
+
+#con 40% dataset: train 40 min, evaluate 1.30 h, accuracy: 0.88, 
 
 
 def fit_and_test(data_labeled):
