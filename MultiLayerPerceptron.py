@@ -45,14 +45,15 @@ def evaluate(model, eval_data):
     # Select (prediction, true label) and compute test error
     evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
     accuracy = evaluator.evaluate(predictions)
-    print('evaluation finish', datetime.now())
+    print('evaluation finish', datetime.now(),'\n')
     print("Predictions accuracy = {0}%, Test Error = {1}".format( accuracy*100, (1.0 - accuracy)))
+    print()
     return accuracy
 
 #con 40% dataset: train 42 min, evaluate 1.30 h, accuracy: 88 %, 
 #con 60% dataset: train 47 min, evaluate 1.32 h, accuracy: 88.03853398828596%
 #con 100% dataset: train 43 min, evaluate 1.25 h, accuracy: Predictions accuracy = 87.57565176908753%, Test Error = 0.12424348230912474
-# usando la persist su dataset la evaluate ci mette solo 3 min
+# usando la persist su dataset la evaluate ci mette solo 3 min- in totale 56 min
 
 
 def fit_and_test(data_labeled):
