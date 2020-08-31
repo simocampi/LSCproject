@@ -65,7 +65,7 @@ def fit_and_test(data_labeled):
     #print('Load model...')
     #per testare la load
     #try:
-     #   model = PipelineModel.load("/home/user24/LSCproject_2/multiperceptron_model")
+     #  model = PipelineModel.load("/home/user24/LSCproject_2/multiperceptron_model")
     
     #except Py4JJavaError:
     print('Train... ', datetime.now())

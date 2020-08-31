@@ -72,11 +72,11 @@ class WAV():
         print('\n----------------------------------------------------------------------\n\n')
         self.data_labeled = joint_df
         print()
-        self.data_labeled.unpersist()
+        #self.data_labeled.unpersist()
         #da decommentare alla fine
         #if  self.data_labeled.is_cached == False:
-         #   print('Persist data...')
-          #  self.data_labeled.persist(StorageLevel.MEMORY_AND_DISK)
+        print('Persist data...')
+        self.data_labeled.persist(StorageLevel.MEMORY_AND_DISK)
 
     # return an rdd with data and corresponding path
     def read_wav(self):
@@ -90,21 +90,12 @@ class WAV():
         audioDataFrame = self.dataFrame
         annotationRdd = self.annotationDataframe
         # join annotation and file content
-         # output: Filename, start, end crackles, wheezes, duration, sample_rate, data
-        jointDataframe = annotationRdd.join(audioDataFrame, on=['Filename'], how='inner').rdd
-
-        max_len = self.sample_length_seconds
-
-        # slicing the data
-        # x[0] -> Filename
-        # x[1] -> Start
-        # x[2] -> End
-        # x[3] -> Crackles
-        # x[4] -> Wheezes
-        # x[5] -> Duration
-        # x[6] -> Sample Rate
-        # x[7] -> data
         
+        # output of the Join: Filename, start, end crackles, wheezes, duration, sample_rate, data
+        jointDataframe = annotationRdd.join(audioDataFrame, on=['Filename'], how='inner').rdd
+        
+        max_len = self.sample_length_seconds # 6 seconds
+
         filename=0
         start=1
         end=2
@@ -114,8 +105,13 @@ class WAV():
         sample_rate=6
         data=7
 
-        slice_data = jointDataframe.map(lambda x: (x[data][min(int(x[start] * x[sample_rate]), len(x[data])):min(int((x[start] + max_len) * x[sample_rate]), len(x[data]))], x[sample_rate], x[crackles], x[wheezes], int(x[filename][:3])) if max_len < x[end] - x[start] \
-                                                                                                                   else (x[data][min(int(x[start] * x[sample_rate]), len(x[data])):min(int(x[end] * x[sample_rate]), len(x[data]))], x[sample_rate], x[crackles], x[wheezes], int(x[filename][:3])))
+        slice_data = jointDataframe.map(lambda x: (x[data][min(int(x[start] * x[sample_rate]), len(x[data])):min(int((x[start] + max_len) * x[sample_rate]), len(x[data]))], \
+                                                  x[sample_rate], x[crackles], x[wheezes], int(x[filename][:3])) if max_len < x[end] - x[start] \
+                                                  else (x[data][min(int(x[start] * x[sample_rate]), len(x[data])):min(int(x[end] * x[sample_rate]), len(x[data]))], \
+                                                  x[sample_rate], x[crackles], x[wheezes], int(x[filename][:3])))
+        
+        
+
         #output: # data, sample_rate, crackle, wheezes, id_patient
         # padding if not long enough
         self.rdd = slice_data.map(lambda x: (x[0] + [0 for _ in range(max_len - len(x[0]))], x[1], x[2], x[3], x[4])) # data, sample rate, Crackels, Wheezes
