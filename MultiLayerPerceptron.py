@@ -21,7 +21,6 @@ from datetime import datetime
 
 
 def train(trainingData):
-    #layers = [13, 8, 2]    accuracy = 0.650186, Test Error = 0.349814
     layers = [15, 8, 5, 8]
 
     FNN = MultilayerPerceptronClassifier(labelCol="label", \
