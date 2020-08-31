@@ -20,10 +20,6 @@ from Utils.miscellaneous import split_train_test, split_data_label
 from datetime import datetime
 
 
-def drop_unecessaryColumns(data, columns=[]):
-    data = data.drop(*columns)
-    return data
-
 def train(trainingData):
     #layers = [13, 8, 2]    accuracy = 0.650186, Test Error = 0.349814
     layers = [15, 8, 5, 8]
