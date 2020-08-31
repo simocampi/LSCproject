@@ -27,12 +27,16 @@ class DemographicInfo(object):
 
         self.dataFrame = self.spark_session.read \
             .csv(path=self.DEMOGRAPHIC_INFO_PATH, header=True, schema= self.data_structure, sep=',', nullValue='NA')
+        self.dataFrame.show()
 
         # get rid of the Child's informations => now BMI column contains the BMI for both Adult and Children
         temp_rdd = self.dataFrame.rdd
+        print(temp_rdd.take(1))
+        print("************************************")
         temp_rdd = temp_rdd.map(lambda p: replace_bmi_child(p))
-        temp_rdd.take(1)
+        print(temp_rdd.take(1))
         self.dataFrame = temp_rdd.toDF()#self.shrank_schema) #['Patient_number', 'Age', 'Sex', 'BMI']
+        self.dataFrame.show()
 
     def get_DataFrame(self):
         return self.dataFrame
