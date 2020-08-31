@@ -59,13 +59,20 @@ class WAV():
         print('StringIndexer')
         indexer = StringIndexer(inputCol="Diagnosis", outputCol="label")
         df_patient_diagnosis = indexer.fit(df_patient_diagnosis).transform(df_patient_diagnosis)
+        
+        print('\n\n-------------------Diagnosis with corresponding numeric label-------------------\n')
         df_patient_diagnosis.drop('Patient_Number').dropDuplicates(['label']).show()
+        print('\n--------------------------------------------------------------------------------\n\n')
 
         df_features = self.get_DataFrame()
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
         joint_df = joint_df.drop('Patient_Number', 'Diagnosis')
+        print('\n\n---------------------Data with corresponding labels-------------------\n')
         joint_df.show(10)
+        print('\n----------------------------------------------------------------------\n\n')
         self.data_labeled = joint_df
+        print()
+        #self.data_labeled.unpersist()
         #da decommentare alla fine
         if  self.data_labeled.is_cached == False:
             print('Persist data...')
@@ -255,8 +262,7 @@ class WAV():
         wav_DF = wav_DF.withColumn("Recording_Equipement", split_col.getItem(4))
 
         self.recordingInfo = wav_DF # the class variable the Dataframe containing the recording info
-        #wav_DF.printSchema()
-        #wav_DF.show(2, False)
+        
 
     def recording_annotation(self):
         idx_fileName = len(WAV.PATH_FILES_WAV.split("/"))
@@ -271,12 +277,6 @@ class WAV():
             withColumn("Filename", split(input_file_name(), "/").getItem(idx_fileName - 1)).\
             withColumn("Duration", col("End") - col("Start"))
 
-        #print(self.annotationDataframe.select("Filename").count())
-        #self.annotationDataframe.where("Filename=='101_1b1_Pr_sc_Meditron.txt'").show()
-        # the class variable the Dataframe containing the recording annotation
-        #self.annotationDataframe.printSchema()
-        #self.annotationDataframe.show(2, False)
-   
     def get_fileNames_test(self):
         path = Path.get_wav_file_path()
         list_of_fileName = []

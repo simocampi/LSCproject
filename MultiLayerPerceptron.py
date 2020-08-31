@@ -61,17 +61,17 @@ def fit_and_test(data_labeled):
     print('split_train_test...', datetime.now())
     training_data, test_data = split_train_test(data)
     
-    print('Load model...')
+    #print('Load model...')
     #per testare la load
-    try:
-        model = PipelineModel.load("/home/user24/LSCproject_2/multiperceptron_model")
+    #try:
+     #   model = PipelineModel.load("/home/user24/LSCproject_2/multiperceptron_model")
     
-    except Py4JJavaError:
-        print('Train... ', datetime.now())
-        model = train(training_data)
-        #/home/user24/LSCproject_2/multiperceptron_model
-        print('save model... ')
-        model.write().overwrite().save("/home/user24/LSCproject_2/multiperceptron_model")
-    
+    #except Py4JJavaError:
+    print('Train... ', datetime.now())
+    model = train(training_data)
+    #/home/user24/LSCproject_2/multiperceptron_model
+    print('save model... ')
+    model.write().overwrite().save("/home/user24/LSCproject_2/multiperceptron_model")
+
     print('evaluating....', datetime.now(),"\n")
     acc = evaluate(model, test_data)

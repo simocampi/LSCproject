@@ -14,11 +14,13 @@ def split_train_test(labeled_point_rdd, training_data_ratio=0.7, random_seeds=13
 #divide the data into features and labels 
 def split_data_label(data, label, features):    
     data = list_to_vector(data, 'Data')
-    print('Dataset Completo')
+    
+    print('\n\n-------Schema Dataset Before VectorAssembler--------\n')
     data.printSchema()
     assembler = VectorAssembler(
         inputCols=features,
         outputCol="features")
+    print('\n---------------------------------------------\n\n')
     data = assembler.transform(data)  
       
     return data
