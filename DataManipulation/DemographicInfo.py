@@ -22,7 +22,6 @@ class DemographicInfo(object):
 
         self.DEMOGRAPHIC_INFO_FILE = 'demographic_info.csv'
         self.DEMOGRAPHIC_INFO_PATH = Path.get_database_path() + self.DEMOGRAPHIC_INFO_FILE
-        #self.DEMOGRAPHIC_INFO_PATH = 'Database/demographic_info.csv' 
 
         self.spark_session= spark_session
 
