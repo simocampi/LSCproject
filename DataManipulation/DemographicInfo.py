@@ -28,11 +28,21 @@ class DemographicInfo(object):
         self.dataFrame = self.spark_session.read \
             .csv(path=self.DEMOGRAPHIC_INFO_PATH, header=True, schema= self.data_structure, sep=',', nullValue='NA')
 
+        # get rid of the Child's informations => now BMI column contains the BMI for both Adult and Children
+        self.dataFrame = self.dataFrame.rdd.map(lambda p: self.replace_bmi_child(p)).toDF(self.shrank_schema) 
+
     def get_DataFrame(self):
         return self.dataFrame
 
     def get_Rdd(self):
         return self.dataFrame.rdd
 
-    # method fillna to replace nan values with   a certain value
-    # .fillna("No College", inplace = True) read reference
+    # the BMI for children is calculated whenever is possible 
+    def replace_bmi_child(self, p):
+        if p['Age'] is  None or p['Child_weight'] is None or p['Child_height'] is None:
+            return (p['Patient_number'], p['Age'], p['Sex'], None)
+
+        if p['Age']<18:
+            return (p['Patient_number'], p['Age'], p['Sex'], p['Child_weight'] / (p['Child_height']/100)**2)
+        else:
+            return (p['Patient_number'], p['Age'], p['Sex'], p['Adult_BMI'])
