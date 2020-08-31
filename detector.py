@@ -41,7 +41,10 @@ def drop_unecessaryColumns(data, columns=[]):
 
 def train(trainingData):
     #layers = [13, 8, 2]    accuracy = 0.650186, Test Error = 0.349814
-    layers = [13, 8, 5, 2]
+    #layers = [13, 8, 5, 2] accuracy = 0.649184, Test Error = 0.350816
+    #layers = [13, 20, 2]   accuracy = 0.653391, Test Error = 0.346609
+    layers = [13, 2]        
+    #layers = [13, 32, 2]
 
     FNN = MultilayerPerceptronClassifier(labelCol="label", \
                                          featuresCol="features",\
@@ -80,14 +83,14 @@ def test(my_data):
     print('rename...', datetime.now())
     my_data = transform_data_label(my_data, label='Wheezes', features=['Data'])
     my_data.printSchema()
-    my_data.groupBy('label').count().show()
+    #my_data.groupBy('label').count().show()
 
     print('splitting...', datetime.now(),"\n")
     training_data, validation_data = split_train_test(my_data, training_data_ratio=0.3)
     training_data, test_data = split_train_test(training_data)
     
-    print('training data count...', datetime.now())
-    training_data.groupBy('label').count().show()
+    #print('training data count...', datetime.now())
+    #training_data.groupBy('label').count().show()
 
     print('training...', datetime.now(),"\n")
     my_mode = train(training_data)
