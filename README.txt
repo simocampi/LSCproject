@@ -9,7 +9,7 @@ scp -r DataManipulation/ Main.py Utils/ wav_manipulation/ user24@192.168.20.157:
 3- to download files: scp user24@192.168.20.157:LSCproject /mnt/c/Users/simoc/Documents/GitHub/LSCproject/Spark.py
 
 4- to exute a spark program: spark-submit --master yarn Spark.py hdfs://master:9000/user/user24/LSCproject
-
+export PYSPARK_PYTHON=python3
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
