@@ -56,7 +56,6 @@ class WAV():
         patient_diagnosis = PatientDiagnosis(self.spark_session)
         df_patient_diagnosis=patient_diagnosis.get_DataFrame()
         
-        print('StringIndexer')
         indexer = StringIndexer(inputCol="Diagnosis", outputCol="label")
         df_patient_diagnosis = indexer.fit(df_patient_diagnosis).transform(df_patient_diagnosis)
         

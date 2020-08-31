@@ -29,8 +29,10 @@ print("spark context & spark session created\t", datetime.now())
                 
 wav = WAV(spark_session, spark_context)
 demInfo = DemographicInfo(spark_session)
-demInfo.get_DataFrame().show()
+dfffff = demInfo.get_DataFrame()
+dfffff.show()
 print("loaded all data\t", datetime.now())
+exit(0)
 
 data_labeled = wav.get_data_labeled_df()
 print('\n\n----------Schema Dataset After VectorAssembler------------------------------\n')
