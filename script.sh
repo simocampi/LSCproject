@@ -14,7 +14,7 @@ echo
 
 #scp -r DataManipulation/ Main.py Utils/ wav_manipulation/ user24@192.168.20.157:LSCproject
 
-expect -c 'spawn scp -r DataManipulation/ Main.py Classifier.py MultiLayerPerceptron.py Utils/ wav_manipulation/ user24@192.168.20.157:LSCproject;
+expect -c 'spawn scp -r DataManipulation/ Main.py MultiLayerPerceptron.py Utils/ wav_manipulation/ user24@192.168.20.157:LSCproject;
 expect "assword:";
 send "user24\r";
 interact'

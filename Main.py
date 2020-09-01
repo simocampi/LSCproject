@@ -2,16 +2,9 @@ from pyspark.sql import SparkSession
 from pyspark import SparkContext, SparkConf
 import time
 
-
 from wav_manipulation.wav import WAV
-from DataManipulation.DemographicInfo import DemographicInfo
-from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from datetime import datetime
 import MultiLayerPerceptron
-
-from Classifier import RandomForest
-
-
 
 
 print("\n\n-------------------------------------------------------------------------------\n")
@@ -28,9 +21,6 @@ spark_session = SparkSession(sparkContext=spark_context).builder \
 print("spark context & spark session created\t", datetime.now())
                 
 wav = WAV(spark_session, spark_context)
-demInfo = DemographicInfo(spark_session)
-dfffff = demInfo.get_DataFrame()
-dfffff.show()
 print("loaded all data\t", datetime.now())
 exit(0)
 
@@ -40,7 +30,7 @@ data_labeled.printSchema()
 print('\n------------------------------------------------------------------------------\n\n')
 MultiLayerPerceptron.fit_and_test(data_labeled)
 
-end= time.time()
+end = time.time()
 print("\n----------------------------------------------------------------------------------\n\n")
 print("END...", datetime.now())
 hours, rem = divmod(end-start, 3600)

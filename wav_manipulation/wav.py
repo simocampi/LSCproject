@@ -1,18 +1,20 @@
 from os import listdir
 from os.path import *
-import io
 import subprocess
 from scipy.io import wavfile
-from pyspark.sql.types import (StructField,StringType,IntegerType,StructType,FloatType, ArrayType, ByteType, BinaryType)
-from pyspark.sql.functions import split, substring, col, regexp_replace, reverse, lit, input_file_name, udf
+from pyspark.sql.types import StructField, StringType, IntegerType, StructType, FloatType, ArrayType#, ByteType, BinaryType)
+from pyspark.sql.functions import split, col, input_file_name #, substring, regexp_replace, lit, udf, reverse,
 import numpy as np
 from Utils.utils_wav import *
 from DataManipulation.Utils.Path import Path
-import librosa as lb
 from scipy.fftpack import dct
-from DataManipulation.PatientDiagnosis import PatientDiagnosis
 from pyspark.ml.feature import StringIndexer
 from pyspark import StorageLevel
+#import librosa as lb
+#import io
+
+from DataManipulation.PatientDiagnosis import PatientDiagnosis
+from DataManipulation.DemographicInfo import DemographicInfo
 
 def round_half_up(number):
     return int(decimal.Decimal(number).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP))
@@ -56,6 +58,9 @@ class WAV():
         patient_diagnosis = PatientDiagnosis(self.spark_session)
         df_patient_diagnosis=patient_diagnosis.get_DataFrame()
         
+        demographic_info = DemographicInfo(self.spark_session)
+        df_demographic_info = demographic_info.get_DataFrame()
+
         indexer = StringIndexer(inputCol="Diagnosis", outputCol="label")
         df_patient_diagnosis = indexer.fit(df_patient_diagnosis).transform(df_patient_diagnosis)
         
@@ -64,16 +69,13 @@ class WAV():
         print('\n--------------------------------------------------------------------------------\n\n')
 
         df_features = self.get_DataFrame()
+        df_patient_info = df_demographic_info.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
-        joint_df = joint_df.drop('Patient_Number', 'Diagnosis')
+        self.data_labeled = joint_df.drop('Patient_Number', 'Diagnosis')
+        
         print('\n\n---------------------Data with corresponding labels-------------------\n')
-        joint_df.show(10)
+        self.data_labeled.show(10)
         print('\n----------------------------------------------------------------------\n\n')
-        self.data_labeled = joint_df
-        print()
-        #self.data_labeled.unpersist()
-        #da decommentare alla fine
-        #if  self.data_labeled.is_cached == False:
         print('Persist data...')
         self.data_labeled.persist(StorageLevel.MEMORY_AND_DISK)
 
