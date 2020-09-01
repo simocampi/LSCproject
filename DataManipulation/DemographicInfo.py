@@ -17,7 +17,7 @@ class DemographicInfo(object):
 
         self.shrank_schema = StructType(fields=[StructField('Patient_number', IntegerType(), True), 
                                 StructField('Age', FloatType(), True),
-                                StructField('Sex', StringType(), True),
+                                StructField('Sex', IntegerType(), True),
                                 StructField('BMI', FloatType(), True)]) # this column is filled with child Bmi calculated with Child_weight and Child_height
 
         self.data_structure = StructType(self.original_schema)
@@ -33,9 +33,16 @@ class DemographicInfo(object):
         # get rid of the Child's informations => now BMI column contains the BMI for both Adult and Children
         temp_rdd = self.dataFrame.rdd
         temp_rdd = temp_rdd.map(lambda p: (p['Patient_number'], p['Age'], p['Sex'], p['Adult_BMI']) if (p['Adult_BMI'] is not None) else
-                                          (p['Patient_number'], p['Age'], p['Sex'], None) if (p['Age'] is None or p['Age']>=18 or (p['Child_weight'] is None or p['Child_height'] is None)) else
+                                          (p['Patient_number'], p['Age'], p['Sex'], None)           if (p['Age'] is None or p['Age']>=18 or (p['Child_weight'] is None or p['Child_height'] is None)) else
                                           (p['Patient_number'], p['Age'], p['Sex'], p['Child_weight'] / (p['Child_height']/100)**2))
         
+        #temp_rdd = temp_rdd.map(lambda p: (p['Patient_number'], p['Age'], None, p['Adult_BMI']) if (p['Sex'] is None) else
+        #                                  (p['Patient_number'], p['Age'], 0, p['Adult_BMI'])  if (p['Sex'] == 'F') else
+        #                                  (p['Patient_number'], p['Age'], 1, p['Adult_BMI']))
+        temp_rdd = temp_rdd.map(lambda p: (p[0], p[1], None, p[3]) if (p[2] is None) else
+                                          (p[0], p[1], 0,    p[3]) if (p[2] == 'F') else
+                                          (p[0], p[1], 1,    p[3]))
+
         self.dataFrame = temp_rdd.toDF(self.shrank_schema)
 
         #Drop rows from DataFrame with null values
