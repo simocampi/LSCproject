@@ -21,7 +21,8 @@ from datetime import datetime
 
 
 def train(trainingData):
-    layers = [15, 8, 5, 8]
+    print('giusto')
+    layers = [18, 8, 5, 8]
 
     FNN = MultilayerPerceptronClassifier(labelCol="label", \
                                          featuresCol="features",\
@@ -33,9 +34,9 @@ def train(trainingData):
     model = pipeline.fit(trainingData)
     return model
 
-def evaluate(model, eval_data):
+def evaluate(model, test_set):
     # Make predictions.
-    predictions = model.transform(eval_data)
+    predictions = model.transform(test_set)
 
     # Select (prediction, true label) and compute test error
     evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
@@ -53,6 +54,7 @@ def evaluate(model, eval_data):
 
 def fit_and_test(data_labeled):
     data=split_data_label(data_labeled,label='label', features=['Data','Wheezes','Crackels', 'Age', 'Sex', 'BMI'])
+
 
     print('split_train_test...', datetime.now())
     training_data, test_data = split_train_test(data)
