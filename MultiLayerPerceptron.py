@@ -54,7 +54,8 @@ def evaluate(model, test_set):
 
 def fit_and_test(data_labeled):
     data=split_data_label(data_labeled,label='label', features=['Data','Wheezes','Crackels', 'Age', 'Sex', 'BMI'])
-
+    print('\n Counting data..')
+    print( 'Size of the dataset', data.rdd.count(),'\n')
 
     print('split_train_test...', datetime.now())
     training_data, test_data = split_train_test(data)
