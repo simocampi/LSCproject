@@ -72,10 +72,11 @@ class WAV():
         df_patient_info = df_demographic_info.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
         joint_df = df_features.join(df_patient_diagnosis, on=['Patient_number'], how='inner')
         self.data_labeled = joint_df.drop('Patient_Number', 'Diagnosis')
-        
+
         print('\n\n---------------------Data with corresponding labels-------------------\n')
         self.data_labeled.show(10)
         print('\n----------------------------------------------------------------------\n\n')
+        
         print('Persist data...')
         self.data_labeled.persist(StorageLevel.MEMORY_AND_DISK)
 
