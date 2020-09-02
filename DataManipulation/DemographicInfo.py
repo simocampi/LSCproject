@@ -32,6 +32,7 @@ class DemographicInfo(object):
 
         # get rid of the Child's informations => now BMI column contains the BMI for both Adult and Children
         temp_rdd = self.dataFrame.rdd
+        
         temp_rdd = temp_rdd.map(lambda p: (p['Patient_number'], p['Age'], p['Sex'], p['Adult_BMI']) if (p['Adult_BMI'] is not None) else
                                           (p['Patient_number'], p['Age'], p['Sex'], None)           if (p['Age'] is None or p['Age']>=18 or (p['Child_weight'] is None or p['Child_height'] is None)) else
                                           (p['Patient_number'], p['Age'], p['Sex'], p['Child_weight'] / (p['Child_height']/100)**2))
